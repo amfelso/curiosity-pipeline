@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: SAM Template for Mars Image Processing Pipeline
+
+Resources:
+  MarsImageProcessingStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/mars_image_pipeline.asl.json
+      DefinitionSubstitutions:
+        FetchImagesFunctionArn: !GetAtt FetchMarsImagesFunction.Arn
+        ProcessMetadataFunctionArn: !GetAtt ProcessMarsImageMetadataFunction.Arn
+        GenerateEmbeddingsFunctionArn: !GetAtt GenerateMarsImageEmbeddingFunction.Arn
+        DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
+        DDBTransactionTable: !Ref PipelineTransactionLogTable
+      Events:
+        NightlySchedule:
+          Type: Schedule
+          Properties:
+            Description: Schedule to run the Mars Image Processing State Machine nightly
+            Enabled: True
+            Schedule: "rate(1 day)"
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref FetchMarsImagesFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessMarsImageMetadataFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GenerateMarsImageEmbeddingFunction
+        - DynamoDBWritePolicy:
+            TableName: !Ref PipelineTransactionLogTable
+
+  FetchMarsImagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/fetch_mars_images/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Description: Fetches the latest images from the NASA Mars Rover API.
+
+  ProcessMarsImageMetadataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/process_mars_metadata/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Description: Processes metadata for Mars images and stores it in S3.
+
+  GenerateMarsImageEmbeddingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/generate_image_embeddings/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Description: Generates vector embeddings for Mars images and stores them in Pinecone.
+
+  PipelineTransactionLogTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: PipelineRunID
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      Description: DynamoDB table for logging pipeline transactions and events.
+
+Outputs:
+  MarsImageProcessingStateMachineArn:
+    Description: "Mars Image Processing State Machine ARN"
+    Value: !Ref MarsImageProcessingStateMachine
+
+  MarsImageProcessingStateMachineRoleArn:
+    Description: "IAM Role for the Mars Image Processing State Machine"
+    Value: !GetAtt MarsImageProcessingStateMachineRole.Arn
