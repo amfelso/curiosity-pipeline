@@ -37,8 +37,17 @@ The pipeline runs on a nightly schedule (disabled by default to avoid incurring 
 ### Enabling the Schedule
 
 The pipeline schedule is disabled by default. To enable it:
-	1.	Update the template.yaml file to set the Enabled property in the NightlySchedule resource to True.
-	2.	Redeploy the stack using SAM.
+
+1. Open the `template.yaml` file in the project directory.
+2. Locate the `NightlySchedule` resource under the `Events` section of the state machine definition.
+3. Update the `Enabled` property to `True`:
+   ```yaml
+   NightlySchedule:
+     Type: Schedule
+     Properties:
+       Description: Schedule to run the Mars Image Processing State Machine nightly
+       Enabled: True
+       Schedule: "rate(1 day)"
 
 ### Tests
 
