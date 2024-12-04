@@ -9,12 +9,14 @@ import random
 load_dotenv()
 
 # Define logger
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Set your NASA API key here (or fetch it from environment variables)
 NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
 num_images = os.getenv("num_images", 10)
+
 
 def fetch_images_by_sol(sol):
     """
@@ -35,6 +37,7 @@ def fetch_images_by_sol(sol):
     photos = data.get("photos", [])
     return photos
 
+
 def lambda_handler(event, context):
     """
     Lambda function to fetch Mars images based on sol range.
@@ -50,7 +53,8 @@ def lambda_handler(event, context):
         if photos:
             logger.info(f"Retrieved {len(photos)} photos for Sol {sol}.")
             logger.info(f"Randomly sampling {num_images} NAVCAM photos...")
-            navcam_photos = [photo for photo in photos if photo["camera"]["name"] == "NAVCAM"]
+            navcam_photos = [photo for photo in photos
+                            if photo["camera"]["name"] == "NAVCAM"]
             random.shuffle(navcam_photos)
             sampled_photos = navcam_photos[:num_images]
             results.extend(sampled_photos)
@@ -62,6 +66,7 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "body": json.dumps(results)
     }
+
 
 if __name__ == "__main__":
     # Test the function locally
