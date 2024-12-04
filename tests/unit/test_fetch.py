@@ -1,17 +1,16 @@
 from functions.fetch_mars_images import app
 
 
-def test_stock_checker():
-    stock_price = 75
-    input_payload = {"stock_price": stock_price}
+def test_fetch_images():
+    input_payload = {"sols": [4061]}
 
     data = app.lambda_handler(input_payload, "")
 
-    assert "id" in data
-    assert "price" in data
-    assert "type" in data
-    assert "timestamp" in data
-    assert "qty" in data
-
-    assert data["type"] == "buy"
-    assert data["price"] == str(stock_price)
+    assert data["statusCode"] == 200
+    assert len(data["body"]) > 0
+    assert "img_src" in data["body"][0]
+    assert "earth_date" in data["body"][0]
+    assert "sol" in data["body"][0]
+    assert "camera" in data["body"][0]
+    assert "rover" in data["body"][0]
+    assert "id" in data["body"][0]
