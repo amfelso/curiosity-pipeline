@@ -17,6 +17,7 @@ of the stack we are going to test.
 
 load_dotenv()
 
+
 class TestStateMachine(TestCase):
     """
     This integration test will execute the step function and verify
