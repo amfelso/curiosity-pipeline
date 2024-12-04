@@ -29,6 +29,15 @@ Resources:
             FunctionName: !Ref GenerateMarsImageEmbeddingFunction
         - DynamoDBWritePolicy:
             TableName: !Ref PipelineTransactionLogTable
+  
+  MarsImageProcessingLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: MarsImageProcessingLayer
+      Description: Dependencies for Mars Image Processing functions
+      ContentUri: layers/mars_image_processing/
+      CompatibleRuntimes:
+        - python3.12
 
   FetchMarsImagesFunction:
     Type: AWS::Serverless::Function
@@ -37,6 +46,8 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Fetches the latest images from the NASA Mars Rover API.
+      Layers:
+        - !Ref MarsImageProcessingLayer
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
@@ -45,6 +56,8 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Processes metadata for Mars images and stores it in S3.
+      Layers:
+        - !Ref MarsImageProcessingLayer
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
@@ -53,6 +66,8 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.
+      Layers:
+        - !Ref MarsImageProcessingLayer
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
