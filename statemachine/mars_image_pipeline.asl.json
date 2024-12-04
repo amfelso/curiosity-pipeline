@@ -53,7 +53,7 @@
       "Parameters": {
         "TableName": "${DDBTransactionTable}",
         "Item": {
-          "Id": {
+          "PipelineRunID": {
             "S.$": "$.id"
           },
           "Type": {
@@ -76,7 +76,7 @@
             "States.TaskFailed"
           ],
           "IntervalSeconds": 20,
-          "MaxAttempts": 5,
+          "MaxAttempts": 1,
           "BackoffRate": 10
         }
       ],

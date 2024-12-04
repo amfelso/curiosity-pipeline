@@ -91,7 +91,7 @@ class TestStateMachine(TestCase):
         client = boto3.client("dynamodb")
         client.delete_item(
             Key={
-                "Id": {
+                "PipelineRunID": {
                     "S": self.inserted_record_id,
                 },
             },
@@ -151,7 +151,7 @@ class TestStateMachine(TestCase):
         client = boto3.client("dynamodb")
         response = client.get_item(
             Key={
-                "Id": {
+                "PipelineRunID": {
                     "S": transaction_table_input["id"],
                 },
             },
