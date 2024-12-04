@@ -1,7 +1,7 @@
-from functions.process_mars_metadata import app
+from functions.generate_image_embeddings import app
 
 
-def test_stock_checker():
+def test_generate_embeddings():
     stock_price = 25
     input_payload = {"stock_price": stock_price}
 

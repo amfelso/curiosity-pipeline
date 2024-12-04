@@ -1,7 +1,7 @@
 # Mars Image Processing Pipeline
 
-![DEV Workflow](https://github.com/your-username/mars-image-pipeline/actions/workflows/Develop.yml/badge.svg)
-![PROD Workflow](https://github.com/your-username/mars-image-pipeline/actions/workflows/Release.yml/badge.svg)
+![DEV Workflow](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Develop.yml/badge.svg)
+![PROD Workflow](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Release.yml/badge.svg)
 
 This application automates the retrieval, processing, and embedding of Mars rover images using AWS Step Functions and serverless architecture. It demonstrates the use of Step Functions to orchestrate Lambda functions, S3, DynamoDB, and Pinecone for a robust, event-driven data pipeline optimized for Retrieval-Augmented Generation (RAG) applications.
 

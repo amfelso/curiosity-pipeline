@@ -63,7 +63,6 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-      Description: DynamoDB table for logging pipeline transactions and events.
 
 Outputs:
   MarsImageProcessingStateMachineArn:

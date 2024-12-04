@@ -1,37 +1,76 @@
-from datetime import datetime
-from random import randint
-from uuid import uuid4
+import requests
+import json
+import os
+from dotenv import load_dotenv
+import logging
+import random
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Define logger
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# Set your NASA API key here (or fetch it from environment variables)
+NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
+num_images = os.getenv("num_images", 10)
+
+
+def fetch_images_by_sol(sol):
+    """
+    Fetch images from NASA's Mars Rover API for a specific sol.
+    """
+    base_url = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos"
+    params = {
+        "sol": sol,
+        "api_key": NASA_API_KEY
+    }
+    
+    # Make API request
+    response = requests.get(base_url, params=params)
+    response.raise_for_status()
+    
+    # Parse response JSON
+    data = response.json()
+    photos = data.get("photos", [])
+    return photos
 
 
 def lambda_handler(event, context):
-    """Sample Lambda function which mocks the operation of
-    buying a random number of shares for a stock.
-
-    For demonstration purposes, this Lambda function does not actually
-    perform any actual transactions. It simply returns a mocked result.
-
-    Parameters
-    ----------
-    event: dict, required
-        Input event to the Lambda function
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-    Returns
-    ------
-        dict: Object containing details of the stock buying transaction
     """
-    # Get the price of the stock provided as input
-    stock_price = event["stock_price"]
-    # Mocked result of a stock buying transaction
-    transaction_result = {
-        "id": str(uuid4()),  # Unique ID for the transaction
-        "price": str(stock_price),  # Price of each share
-        "type": "buy",  # Type of transaction (buy/sell)
-        "qty": str(
-            randint(1, 10)
-        ),  # Number of shares bought/sold (random integer between 1 and 10)
-        "timestamp": datetime.now().isoformat(),  # Timestamp of transaction
+    Lambda function to fetch Mars images based on sol range.
+    Input: {'sols': [1000, 1001]}
+    """
+    sols = event.get("sols", [0])  # Default to the first sol if none provided
+    results = []
+    
+    # Fetch data for each sol
+    for sol in sols:
+        logger.info(f"Fetching images for Sol {sol}...")
+        photos = fetch_images_by_sol(sol)
+        if photos:
+            logger.info(f"Retrieved {len(photos)} photos for Sol {sol}.")
+            logger.info(f"Randomly sampling {num_images} NAVCAM photos...")
+            navcam_photos = [photo for photo in photos
+                            if photo["camera"]["name"] == "NAVCAM"]
+            random.shuffle(navcam_photos)
+            sampled_photos = navcam_photos[:num_images]
+            results.extend(sampled_photos)
+        else:
+            logger.warning(f"No photos found for Sol {sol}.")
+    
+    # Return the image metadata for the next step
+    return {
+        "statusCode": 200,
+        "body": json.dumps(results)
     }
-    return transaction_result
+
+
+if __name__ == "__main__":
+    # Test the function locally
+    logger.info("Testing locally...")
+    test_event = {"sols": [4061]}
+    result = lambda_handler(test_event, None)
+    logger.info(f"Result: {result}")
