@@ -33,7 +33,7 @@
             },
             "LogSuccess": {
               "Type": "Pass",
-              "Next": "End"
+              "End": true
             }
           }
         },
