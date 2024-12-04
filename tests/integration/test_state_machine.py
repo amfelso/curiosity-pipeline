@@ -5,6 +5,7 @@ from time import sleep
 from typing import Dict
 from unittest import TestCase
 from uuid import uuid4
+from dotenv import load_dotenv
 
 import boto3
 from botocore.client import BaseClient
@@ -13,6 +14,8 @@ from botocore.client import BaseClient
 Make sure env variable AWS_SAM_STACK_NAME exists with the name
 of the stack we are going to test.
 """
+
+load_dotenv()
 
 
 class TestStateMachine(TestCase):
@@ -65,15 +68,15 @@ class TestStateMachine(TestCase):
         resources = response["StackResourceSummaries"]
         sfn_resources = [
             resource for resource in resources
-            if resource["LogicalResourceId"] == "StockTradingStateMachine"
+            if resource["LogicalResourceId"] == "MarsImageProcessingStateMachine"
         ]
         ddb_resources = [
             resource for resource in resources
-            if resource["LogicalResourceId"] == "TransactionTable"
+            if resource["LogicalResourceId"] == "PipelineTransactionLogTable"
         ]
         if not sfn_resources or not ddb_resources:
-            raise Exception("""Cannot find StockTradingStateMachine
-                            or TransactionTable""")
+            raise Exception("""Cannot find MarsImageProcessingStateMachine
+                            or PipelineTransactionLogTable""")
 
         cls.state_machine_arn = sfn_resources[0]["PhysicalResourceId"]
         cls.transaction_table_name = ddb_resources[0]["PhysicalResourceId"]

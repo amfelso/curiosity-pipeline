@@ -1,58 +1,86 @@
 {
-    "StartAt": "FetchNASAImages",
-    "States": {
-      "FetchNASAImages": {
-        "Type": "Task",
-        "Resource": "arn:aws:lambda:region:account-id:function:FetchNASAImages",
-        "Next": "ProcessImages"
-      },
-      "ProcessImages": {
-        "Type": "Map",
-        "Iterator": {
-          "StartAt": "ProcessImageMetadata",
-          "States": {
-            "ProcessImageMetadata": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:ProcessImageMetadata",
-              "Next": "StoreMetadataInS3"
-            },
-            "StoreMetadataInS3": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:StoreMetadataInS3",
-              "Next": "GenerateEmbedding"
-            },
-            "GenerateEmbedding": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:GenerateEmbedding",
-              "Next": "InsertIntoPinecone"
-            },
-            "InsertIntoPinecone": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:InsertIntoPinecone",
-              "Next": "LogSuccess"
-            },
-            "LogSuccess": {
-              "Type": "Pass",
-              "End": true
-            }
+  "Comment": "An example of the Amazon States Language using a choice state.",
+  "StartAt": "Fetch Mars Images",
+  "States": {
+    "Fetch Mars Images": {
+      "Type": "Task",
+      "Resource": "${FetchImagesFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 15,
+          "MaxAttempts": 5,
+          "BackoffRate": 1.5
+        }
+      ],
+      "Next": "Process Mars Image Metadata"
+    },
+    "Process Mars Image Metadata": {
+      "Type": "Task",
+      "Resource": "${ProcessMetadataFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 1
+        }
+      ],
+      "Next": "Generate Mars Image Embedding"
+    },
+    "Generate Mars Image Embedding": {
+      "Type": "Task",
+      "Resource": "${GenerateEmbeddingsFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 1
+        }
+      ],
+      "Next": "Record Transaction"
+    },
+    "Record Transaction": {
+      "Type": "Task",
+      "Resource": "${DDBPutItem}",
+      "Parameters": {
+        "TableName": "${DDBTransactionTable}",
+        "Item": {
+          "Id": {
+            "S.$": "$.id"
+          },
+          "Type": {
+            "S.$": "$.type"
+          },
+          "Price": {
+            "N.$": "$.price"
+          },
+          "Quantity": {
+            "N.$": "$.qty"
+          },
+          "Timestamp": {
+            "S.$": "$.timestamp"
           }
-        },
-        "Catch": [
-          {
-            "ErrorEquals": ["States.ALL"],
-            "ResultPath": "$.error",
-            "Next": "NotifyOnFailure"
-          }
-        ],
-        "Next": "End"
+        }
       },
-      "NotifyOnFailure": {
-        "Type": "Task",
-        "Resource": "arn:aws:lambda:region:account-id:function:NotifyOnFailure",
-        "End": true
-      },
-      "End": {
-        "Type": "Succeed"
-      }
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 20,
+          "MaxAttempts": 5,
+          "BackoffRate": 10
+        }
+      ],
+      "End": true
     }
   }
+}
