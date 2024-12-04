@@ -1,34 +1,57 @@
 {
-  "StartAt": "FetchImagesFunction",
+  "Comment": "An example of the Amazon States Language using a choice state.",
+  "StartAt": "Fetch Mars Images",
   "States": {
-    "FetchImagesFunction": {
+    "Fetch Mars Images": {
       "Type": "Task",
       "Resource": "${FetchImagesFunctionArn}",
-      "Next": "ProcessImages"
-    },
-    "ProcessImages": {
-      "Type": "Map",
-      "Iterator": {
-        "StartAt": "ProcessMetadataFunction",
-        "States": {
-          "ProcessMetadataFunction": {
-            "Type": "Task",
-            "Resource": "${ProcessMetadataFunctionArn}",
-            "Next": "StoreMetadataInS3"
-          },
-          "GenerateEmbeddingsFunction": {
-            "Type": "Task",
-            "Resource": "${GenerateEmbeddingsFunctionArn}",
-            "Next": "GenerateEmbedding"
-          }
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 15,
+          "MaxAttempts": 5,
+          "BackoffRate": 1.5
         }
-      }
+      ],
+      "Next": "Process Mars Image Metadata"
+    },
+    "Process Mars Image Metadata": {
+      "Type": "Task",
+      "Resource": "${ProcessMetadataFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 1
+        }
+      ],
+      "Next": "Generate Mars Image Embedding"
+    },
+    "Generate Mars Image Embedding": {
+      "Type": "Task",
+      "Resource": "${GenerateEmbeddingsFunctionArn}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 1
+        }
+      ],
+      "Next": "Record Transaction"
     },
     "Record Transaction": {
       "Type": "Task",
       "Resource": "${DDBPutItem}",
       "Parameters": {
-        "TableName": "${DDBTable}",
+        "TableName": "${DDBTransactionTable}",
         "Item": {
           "Id": {
             "S.$": "$.id"
@@ -45,19 +68,19 @@
           "Timestamp": {
             "S.$": "$.timestamp"
           }
-        },
-        "Retry": [
-          {
-            "ErrorEquals": [
-              "States.TaskFailed"
-            ],
-            "IntervalSeconds": 20,
-            "MaxAttempts": 5,
-            "BackoffRate": 10
-          }
-        ],
-        "End": true
-      }
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "IntervalSeconds": 20,
+          "MaxAttempts": 5,
+          "BackoffRate": 10
+        }
+      ],
+      "End": true
     }
   }
 }
