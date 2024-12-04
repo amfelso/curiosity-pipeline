@@ -18,7 +18,7 @@ jobs:
       - run: sam build --use-container
 
 # sam deploy
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name mars-image-pipeline --s3-bucket sam-assets-01032024 --capabilities CAPABILITY_IAM --region us-east-1
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name mars-image-pipeline --s3-bucket sam-assets-12042024 --capabilities CAPABILITY_IAM --region us-east-1
 
 # integration testing
       - run: pip install -r tests/requirements.txt --user
