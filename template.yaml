@@ -55,6 +55,7 @@ Resources:
       Description: Fetches the latest images from the NASA Mars Rover API.
       Layers:
         - !Ref MarsImageProcessingLayer
+      TimeoutInSeconds: 60  # Timeout of 1 minute
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
@@ -65,6 +66,7 @@ Resources:
       Description: Processes metadata for Mars images and stores it in S3.
       Layers:
         - !Ref MarsImageProcessingLayer
+      TimeoutInSeconds: 60  # Timeout of 1 minute
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
@@ -75,6 +77,7 @@ Resources:
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.
       Layers:
         - !Ref MarsImageProcessingLayer
+      TimeoutInSeconds: 60  # Timeout of 1 minute
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
