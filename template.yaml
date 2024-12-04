@@ -38,6 +38,13 @@ Resources:
       ContentUri: layers/mars_image_processing/
       CompatibleRuntimes:
         - python3.12
+      RetentionPolicy: Retain
+      Metadata:
+        BuildMethod: python3.12
+        BuildProperties:
+          Pipfile: false
+          UsePipenv: false
+          RequirementsFile: requirements.txt
 
   FetchMarsImagesFunction:
     Type: AWS::Serverless::Function
