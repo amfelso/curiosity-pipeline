@@ -18,7 +18,7 @@ Resources:
           Type: Schedule
           Properties:
             Description: Schedule to run the Mars Image Processing State Machine nightly
-            Enabled: True
+            Enabled: False
             Schedule: "rate(1 day)"
       Policies:
         - LambdaInvokePolicy:

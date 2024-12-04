@@ -1,58 +1,63 @@
 {
-    "StartAt": "FetchNASAImages",
-    "States": {
-      "FetchNASAImages": {
-        "Type": "Task",
-        "Resource": "arn:aws:lambda:region:account-id:function:FetchNASAImages",
-        "Next": "ProcessImages"
-      },
-      "ProcessImages": {
-        "Type": "Map",
-        "Iterator": {
-          "StartAt": "ProcessImageMetadata",
-          "States": {
-            "ProcessImageMetadata": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:ProcessImageMetadata",
-              "Next": "StoreMetadataInS3"
-            },
-            "StoreMetadataInS3": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:StoreMetadataInS3",
-              "Next": "GenerateEmbedding"
-            },
-            "GenerateEmbedding": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:GenerateEmbedding",
-              "Next": "InsertIntoPinecone"
-            },
-            "InsertIntoPinecone": {
-              "Type": "Task",
-              "Resource": "arn:aws:lambda:region:account-id:function:InsertIntoPinecone",
-              "Next": "LogSuccess"
-            },
-            "LogSuccess": {
-              "Type": "Pass",
-              "End": true
-            }
+  "StartAt": "FetchImagesFunction",
+  "States": {
+    "FetchImagesFunction": {
+      "Type": "Task",
+      "Resource": "${FetchImagesFunctionArn}",
+      "Next": "ProcessImages"
+    },
+    "ProcessImages": {
+      "Type": "Map",
+      "Iterator": {
+        "StartAt": "ProcessMetadataFunction",
+        "States": {
+          "ProcessMetadataFunction": {
+            "Type": "Task",
+            "Resource": "${ProcessMetadataFunctionArn}",
+            "Next": "StoreMetadataInS3"
+          },
+          "GenerateEmbeddingsFunction": {
+            "Type": "Task",
+            "Resource": "${GenerateEmbeddingsFunctionArn}",
+            "Next": "GenerateEmbedding"
+          }
+        }
+      }
+    },
+    "Record Transaction": {
+      "Type": "Task",
+      "Resource": "${DDBPutItem}",
+      "Parameters": {
+        "TableName": "${DDBTable}",
+        "Item": {
+          "Id": {
+            "S.$": "$.id"
+          },
+          "Type": {
+            "S.$": "$.type"
+          },
+          "Price": {
+            "N.$": "$.price"
+          },
+          "Quantity": {
+            "N.$": "$.qty"
+          },
+          "Timestamp": {
+            "S.$": "$.timestamp"
           }
         },
-        "Catch": [
+        "Retry": [
           {
-            "ErrorEquals": ["States.ALL"],
-            "ResultPath": "$.error",
-            "Next": "NotifyOnFailure"
+            "ErrorEquals": [
+              "States.TaskFailed"
+            ],
+            "IntervalSeconds": 20,
+            "MaxAttempts": 5,
+            "BackoffRate": 10
           }
         ],
-        "Next": "End"
-      },
-      "NotifyOnFailure": {
-        "Type": "Task",
-        "Resource": "arn:aws:lambda:region:account-id:function:NotifyOnFailure",
         "End": true
-      },
-      "End": {
-        "Type": "Succeed"
       }
     }
   }
+}
