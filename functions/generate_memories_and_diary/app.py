@@ -42,7 +42,7 @@ def lambda_handler(event, context):
     results = []
     
     # Iterate through photos
-    for photo in photos[:1]:
+    for photo in photos:
         logger.info(photo)
 
         # Download the image
