@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Set your NASA API key here (or fetch it from environment variables)
 NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
-num_images = os.getenv("num_images", 10)
+num_images = os.getenv("num_images", 5)
 
 
 def fetch_images_by_sol(sol):
@@ -40,7 +40,8 @@ def fetch_images_by_sol(sol):
 
 def lambda_handler(event, context):
     """
-    Lambda function to fetch Mars images based on sol range.
+    Lambda function to fetch 1-5 random images from Curiosity on the specified date.
+
     Input: {'sols': [1000, 1001]}
     """
     sols = event.get("sols", [0])  # Default to the first sol if none provided
@@ -52,11 +53,14 @@ def lambda_handler(event, context):
         photos = fetch_images_by_sol(sol)
         if photos:
             logger.info(f"Retrieved {len(photos)} photos for Sol {sol}.")
-            logger.info(f"Randomly sampling {num_images} NAVCAM photos...")
+            logger.info(f"Randomly sampling {num_images} MASTCAM photos...")
             navcam_photos = [photo for photo in photos
                             if photo["camera"]["name"] == "NAVCAM"]
             random.shuffle(navcam_photos)
             sampled_photos = navcam_photos[:num_images]
+            # filter each item to only return key fields
+            sampled_photos = [{k: v for k, v in photo.items() if k in
+                             ["id", "earth_date", "sol", "img_src"]} for photo in sampled_photos]
             results.extend(sampled_photos)
         else:
             logger.warning(f"No photos found for Sol {sol}.")

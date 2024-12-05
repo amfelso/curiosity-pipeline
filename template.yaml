@@ -49,7 +49,7 @@ Resources:
   FetchMarsImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/fetch_mars_images/
+      CodeUri: functions/fetch_images_with_metadata/
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Fetches the latest images from the NASA Mars Rover API.
@@ -60,7 +60,7 @@ Resources:
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/process_mars_metadata/
+      CodeUri: functions/generate_memories_and_diary/
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Processes metadata for Mars images and stores it in S3.
@@ -71,7 +71,7 @@ Resources:
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/generate_image_embeddings/
+      CodeUri: functions/embed_memories_to_pinecone/
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.

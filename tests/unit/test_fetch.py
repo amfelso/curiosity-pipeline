@@ -1,4 +1,4 @@
-from functions.fetch_mars_images import app
+from functions.fetch_images_with_metadata import app
 import json
 
 
