@@ -48,10 +48,10 @@ Resources:
       Description: Dependencies for Mars Image Processing functions
       ContentUri: layers/curiosity_pipeline/
       CompatibleRuntimes:
-        - python3.12
+        - python3.13
       RetentionPolicy: Retain
     Metadata:
-      BuildMethod: python3.12
+      BuildMethod: python3.13
       BuildProperties:
         Pipfile: false
         UsePipenv: false
@@ -62,7 +62,7 @@ Resources:
     Properties:
       CodeUri: functions/fetch_images_with_metadata/
       Handler: app.lambda_handler
-      Runtime: python3.12
+      Runtime: python3.13
       Description: Fetches the latest images from the NASA Mars Rover API.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -78,7 +78,7 @@ Resources:
     Properties:
       CodeUri: functions/generate_memories_and_diary/
       Handler: app.lambda_handler
-      Runtime: python3.12
+      Runtime: python3.13
       Description: Processes metadata for Mars images and stores it in S3.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -88,13 +88,27 @@ Resources:
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
+      Policies:
+      - Statement:
+        - Sid: RekognitionPolicy
+          Effect: Allow
+          Action:
+          - rekognition:DetectLabels
+          Resource: '*'
+        - Sid: s3Policy
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          Resource: '*'
+
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/embed_memories_to_pinecone/
       Handler: app.lambda_handler
-      Runtime: python3.12
+      Runtime: python3.13
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -104,6 +118,14 @@ Resources:
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
+      Policies:
+      - Statement:
+        - Sid: s3Policy
+          Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:PutObject
+          Resource: '*'
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
