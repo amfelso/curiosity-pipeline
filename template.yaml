@@ -72,6 +72,15 @@ Resources:
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
+      Policies:
+      - Statement:
+        - Sid: ddbPolicy
+          Effect: Allow
+          Action:
+          - ddb:PutItem
+          - ddb:UpdateItem
+          - ddb:GetItem
+          Resource: '*'
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
@@ -101,6 +110,13 @@ Resources:
           - s3:GetObject
           - s3:PutObject
           Resource: '*'
+        - Sid: ddbPolicy
+          Effect: Allow
+          Action:
+          - ddb:PutItem
+          - ddb:UpdateItem
+          - ddb:GetItem
+          Resource: '*'
 
 
   GenerateMarsImageEmbeddingFunction:
@@ -126,12 +142,19 @@ Resources:
           - s3:GetObject
           - s3:PutObject
           Resource: '*'
+        - Sid: ddbPolicy
+          Effect: Allow
+          Action:
+          - ddb:PutItem
+          - ddb:UpdateItem
+          - ddb:GetItem
+          Resource: '*'
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:
-        Name: PipelineRunID
+        Name: EarthDate
         Type: String
       ProvisionedThroughput:
         ReadCapacityUnits: 1
