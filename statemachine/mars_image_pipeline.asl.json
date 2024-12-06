@@ -8,9 +8,6 @@
       "Parameters": {
         "earth_date.$": "$.earth_date"
       },
-      "ResultSelector": {
-        "earth_date.$": "$.earth_date"
-      },
       "ResultPath": "$.earth_date",
       "Retry": [
         {
@@ -28,9 +25,6 @@
       "Parameters": {
         "earth_date.$": "$.earth_date"
       },
-      "ResultSelector": {
-        "earth_date.$": "$.earth_date"
-      },
       "ResultPath": "$.earth_date",
       "Retry": [
         {
@@ -46,9 +40,6 @@
       "Type": "Task",
       "Resource": "${GenerateEmbeddingsFunctionArn}",
       "Parameters": {
-        "earth_date.$": "$.earth_date"
-      },
-      "ResultSelector": {
         "earth_date.$": "$.earth_date"
       },
       "ResultPath": "$.earth_date",
