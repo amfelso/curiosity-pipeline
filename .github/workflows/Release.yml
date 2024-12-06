@@ -23,36 +23,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Debug Environment Variable
+        run: echo "S3_BUCKET=${{ vars.S3_BUCKET }}"
+
       # Build the application using SAM
       - name: Build with SAM
         run: sam build --use-container
-
-      - name: Debug Parameters
-        run: |
-          if [ -n "${{ secrets.PINECONE_API_KEY }}" ]; then
-            echo "PINECONE_API_KEY is SET"
-          else
-            echo "PINECONE_API_KEY is NOT SET"
-          fi
-
-          if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
-            echo "OPENAI_API_KEY is SET"
-          else
-            echo "OPENAI_API_KEY is NOT SET"
-          fi
-
-          if [ -n "${{ secrets.NASA_API_KEY }}" ]; then
-            echo "NASA_API_KEY is SET"
-          else
-            echo "NASA_API_KEY is NOT SET"
-          fi
-
-          if [ -n "${{ vars.S3_BUCKET }}" ]; then
-            echo "S3_BUCKET is SET"
-          else
-            echo "S3_BUCKET is NOT SET"
-          fi
-
+ 
       - name: Deploy with SAM
         env:
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
