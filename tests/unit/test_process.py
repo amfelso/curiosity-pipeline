@@ -1,9 +1,6 @@
 from functions.generate_memories_and_diary import app
 import json
 
-import sys
-print(sys.executable)
-
 
 def test_process_metadata():
     input_payload = {
@@ -65,4 +62,4 @@ def test_process_metadata():
     data = app.lambda_handler(input_payload, "")
 
     assert data["statusCode"] == 200
-    assert len(data["body"]) > 0
+    assert len(json.loads(data["body"])) > 0
