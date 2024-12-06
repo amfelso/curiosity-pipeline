@@ -8,16 +8,6 @@ import json
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize Pinecone and OpenAI clients
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-pc = Pinecone(api_key=PINECONE_API_KEY)
-client = OpenAI(api_key=OPENAI_API_KEY)
-
-# Index Configuration
-INDEX_NAME = "rover-memories"
-index = pc.Index(INDEX_NAME)
-
 
 def test_embed_memories():
     input_payload = {"urls": [("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
