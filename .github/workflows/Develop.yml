@@ -21,6 +21,7 @@ jobs:
           touch .env
           echo NASA_API_KEY=${{ secrets.NASA_API_KEY }} >> .env
           echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env
+          echo PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }} >> .env
           echo S3_BUCKET=${{ vars.S3_BUCKET }} >> .env
           cat .env
       - run: pip install -r layers/curiosity_pipeline/requirements.txt --user
