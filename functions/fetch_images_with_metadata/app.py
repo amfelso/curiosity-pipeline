@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import sys
 from dotenv import load_dotenv
 import logging
 import random
@@ -9,9 +10,12 @@ import random
 load_dotenv()
 
 # Define logger
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)  # Adjust log level as needed
+logger.addHandler(handler)
 
 # Set your NASA API key here (or fetch it from environment variables)
 NASA_API_KEY = os.environ["NASA_API_KEY"]
