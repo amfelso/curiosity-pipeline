@@ -11,6 +11,13 @@ from urllib.parse import urlparse
 # Load environment variables from .env file
 load_dotenv()
 
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+if not PINECONE_API_KEY:
+    raise ValueError("PINECONE_API_KEY is not set in the environment variables.")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY is not set in the environment variables.")
+
 # Define logger
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -66,8 +73,6 @@ def lambda_handler(event, context):
     results = []
 
     # Initialize Pinecone and OpenAI clients
-    PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     pc = Pinecone(api_key=PINECONE_API_KEY)
     client = OpenAI(api_key=OPENAI_API_KEY)
 

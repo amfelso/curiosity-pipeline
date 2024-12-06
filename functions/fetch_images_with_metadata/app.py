@@ -14,7 +14,9 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 # Set your NASA API key here (or fetch it from environment variables)
-NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
+NASA_API_KEY = os.environ["NASA_API_KEY"]
+if not NASA_API_KEY:
+    raise ValueError("NASA_API_KEY is not set in the environment variables.")
 num_images = os.getenv("num_images", 5)
 
 
