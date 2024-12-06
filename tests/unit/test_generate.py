@@ -1,24 +1,65 @@
-from functions.embed_memories_to_pinecone import app
+from functions.generate_memories_and_diary import app
+import json
 
 
-def test_generate_embeddings():
-    input_payload = {"urls": [("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
-                                "2024-01-08/image1216927_memory.txt"),
-                              ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
-                                "2024-01-08/image1216942_memory.txt"),
-                              ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
-                                "2024-01-08/image1216944_memory.txt"),
-                              ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
-                                "2024-01-08/image1216948_memory.txt"),
-                              ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
-                                "2024-01-08/image1216966_memory.txt")]}
+def test_generate_memories():
+    input_payload = {
+        'statusCode': 200,
+        'body': json.dumps([
+            {
+                "id": 1216944,
+                "sol": 4061,
+                "img_src": (
+                            "https://mars.nasa.gov/msl-raw-images/proj/msl/"
+                            "redops/ods/surface/sol/04061/opgs/edr/ncam/"
+                            "NRB_757995593EDR_S1051222NCAM00593M_.JPG"
+                            ),
+                "earth_date": "2024-01-08"
+            },
+            {
+                "id": 1216966,
+                "sol": 4061,
+                "img_src": (
+                            "https://mars.nasa.gov/msl-raw-images/proj/msl/"
+                            "redops/ods/surface/sol/04061/opgs/edr/ncam/"
+                            "NRB_758015288EDR_D1051222NCAM00581M_.JPG"
+                            ),
+                "earth_date": "2024-01-08"
+            },
+            {
+                "id": 1216948,
+                "sol": 4061,
+                "img_src": (
+                            "https://mars.nasa.gov/msl-raw-images/proj/msl/"
+                            "redops/ods/surface/sol/04061/opgs/edr/ncam/"
+                            "NRB_757995542EDR_S1051222NCAM00593M_.JPG"
+                            ),
+                "earth_date": "2024-01-08"
+            },
+            {
+                "id": 1216942,
+                "sol": 4061,
+                "img_src": (
+                            "https://mars.nasa.gov/msl-raw-images/proj/msl/"
+                            "redops/ods/surface/sol/04061/opgs/edr/ncam/"
+                            "NRB_757995619EDR_S1051222NCAM00593M_.JPG"
+                            ),
+                "earth_date": "2024-01-08"
+            },
+            {
+                "id": 1216927,
+                "sol": 4061,
+                "img_src": (
+                            "https://mars.nasa.gov/msl-raw-images/proj/msl/"
+                            "redops/ods/surface/sol/04061/opgs/edr/ncam/"
+                            "NLB_757996498EDR_F1051222CCAM05059M_.JPG"
+                            ),
+                "earth_date": "2024-01-08"
+            }
+        ])
+    }
 
     data = app.lambda_handler(input_payload, "")
 
     assert data["statusCode"] == 200
-    assert len(data["body"]) == 5
-
-    assert "id" in data["body"][0]
-    assert "date" in data["body"][0]
-    assert "type" in data["body"][0]
-    assert "s3_url" in data["body"][0]
+    assert len(json.loads(data["body"])) > 0
