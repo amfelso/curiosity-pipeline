@@ -56,6 +56,12 @@ Resources:
       Layers:
         - !Ref MarsImageProcessingLayer
       Timeout: 120
+      Environment:
+        Variables:
+          PINECONE_API_KEY: !Ref PineconeApiKey
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          NASA_API_KEY: !Ref NasaApiKey
+          S3_BUCKET: !Ref S3Bucket
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
@@ -67,6 +73,12 @@ Resources:
       Layers:
         - !Ref MarsImageProcessingLayer
       Timeout: 120
+      Environment:
+        Variables:
+          PINECONE_API_KEY: !Ref PineconeApiKey
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          NASA_API_KEY: !Ref NasaApiKey
+          S3_BUCKET: !Ref S3Bucket
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
@@ -78,6 +90,12 @@ Resources:
       Layers:
         - !Ref MarsImageProcessingLayer
       Timeout: 120
+      Environment:
+        Variables:
+          PINECONE_API_KEY: !Ref PineconeApiKey
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          NASA_API_KEY: !Ref NasaApiKey
+          S3_BUCKET: !Ref S3Bucket
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
