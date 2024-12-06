@@ -12,9 +12,6 @@ Parameters:
   NasaApiKey:
     Type: String
     Description: API Key for NASA
-  S3Bucket:
-    Type: String
-    Description: S3 bucket for storing Mars images and metadata
 
 Resources:
   MarsImageProcessingStateMachine:
@@ -75,7 +72,6 @@ Resources:
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
-          S3_BUCKET: !Ref S3Bucket
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
@@ -92,7 +88,6 @@ Resources:
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
-          S3_BUCKET: !Ref S3Bucket
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
@@ -109,7 +104,6 @@ Resources:
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
-          S3_BUCKET: !Ref S3Bucket
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
