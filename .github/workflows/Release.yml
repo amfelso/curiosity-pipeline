@@ -33,7 +33,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NASA_API_KEY: ${{ secrets.NASA_API_KEY }}
         run: |
-          echo "Using S3_BUCKET=${{ env.S3_BUCKET }}"
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
