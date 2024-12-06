@@ -4,22 +4,50 @@ on:
       - release
 jobs:
   build-deploy:
+    environment: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - uses: aws-actions/setup-sam@v1
-      - uses: aws-actions/configure-aws-credentials@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Set up AWS SAM CLI
+        uses: aws-actions/setup-sam@v1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      # sam build 
-      - run: sam build --use-container
 
-# sam deploy
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name mars-image-pipeline --s3-bucket sam-assets-12032024 --capabilities CAPABILITY_IAM --region us-east-1
+      # Build the application using SAM
+      - name: Build with SAM
+        run: sam build --use-container
 
-# integration testing
+      # Deploy the application using SAM with Lambda environment variables
+      - name: Deploy with SAM
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name mars-image-pipeline \
+            --s3-bucket sam-assets-12032024 \
+            --capabilities CAPABILITY_IAM \
+            --region us-east-1 \
+            --parameter-overrides \
+              PineconeApiKey=${{ secrets.PINECONE_API_KEY }} \
+              OpenAiApiKey=${{ secrets.OPENAI_API_KEY }} \
+              NasaApiKey=${{ secrets.NASA_API_KEY }} \
+              S3Bucket=${{ vars.S3_BUCKET }}
+
+      # Install dependencies for integration testing
+      - name: Install Python dependencies
+        run: pip install -r layers/curiosity_pipeline/requirements.txt --user
+
+      # Run integration tests
+      - name: Run integration tests
       - run: pip install -r tests/requirements.txt --user
       - run: AWS_SAM_STACK_NAME="mars-image-pipeline" python -m pytest tests/integration -v

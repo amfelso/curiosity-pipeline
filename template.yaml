@@ -35,7 +35,7 @@ Resources:
     Properties:
       LayerName: MarsImageProcessingLayer
       Description: Dependencies for Mars Image Processing functions
-      ContentUri: layers/mars_image_processing/
+      ContentUri: layers/curiosity_pipeline/
       CompatibleRuntimes:
         - python3.12
       RetentionPolicy: Retain
@@ -49,35 +49,53 @@ Resources:
   FetchMarsImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/fetch_mars_images/
+      CodeUri: functions/fetch_images_with_metadata/
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Fetches the latest images from the NASA Mars Rover API.
       Layers:
         - !Ref MarsImageProcessingLayer
       Timeout: 120
+      Environment:
+        Variables:
+          PINECONE_API_KEY: !Ref PineconeApiKey
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          NASA_API_KEY: !Ref NasaApiKey
+          S3_BUCKET: !Ref S3Bucket
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/process_mars_metadata/
+      CodeUri: functions/generate_memories_and_diary/
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Processes metadata for Mars images and stores it in S3.
       Layers:
         - !Ref MarsImageProcessingLayer
       Timeout: 120
+      Environment:
+        Variables:
+          PINECONE_API_KEY: !Ref PineconeApiKey
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          NASA_API_KEY: !Ref NasaApiKey
+          S3_BUCKET: !Ref S3Bucket
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/generate_image_embeddings/
+      CodeUri: functions/embed_memories_to_pinecone/
       Handler: app.lambda_handler
       Runtime: python3.12
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.
       Layers:
         - !Ref MarsImageProcessingLayer
       Timeout: 120
+      Environment:
+        Variables:
+          PINECONE_API_KEY: !Ref PineconeApiKey
+          OPENAI_API_KEY: !Ref OpenAiApiKey
+          NASA_API_KEY: !Ref NasaApiKey
+          S3_BUCKET: !Ref S3Bucket
 
   PipelineTransactionLogTable:
     Type: AWS::Serverless::SimpleTable
