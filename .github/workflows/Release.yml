@@ -68,10 +68,10 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region us-east-1 \
             --parameter-overrides \
-              PineconeApiKey=$PINECONE_API_KEY \
-              OpenAiApiKey=$OPENAI_API_KEY \
-              NasaApiKey=$NASA_API_KEY \
-              S3Bucket=$S3_BUCKET
+              ParameterKey=PineconeApiKey,ParameterValue=$PINECONE_API_KEY \
+              ParameterKey=OpenAiApiKey,ParameterValue=$OPENAI_API_KEY \
+              ParameterKey=NasaApiKey,ParameterValue=$NASA_API_KEY \
+              ParameterKey=S3Bucket,ParameterValue=$S3_BUCKET
 
       # Install dependencies for integration testing
       - name: Install Python dependencies
