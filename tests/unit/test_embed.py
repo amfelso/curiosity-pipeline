@@ -1,8 +1,5 @@
 from functions.embed_memories_to_pinecone import app
-from pinecone import Pinecone
 from dotenv import load_dotenv
-from openai import OpenAI
-import os
 import json
 
 # Load environment variables from .env file

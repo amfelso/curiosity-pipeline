@@ -35,14 +35,14 @@ def get_text_from_s3(url):
     return text
 
 
-def get_embedding(text, model="text-embedding-3-small"):
+def get_embedding(text, client, model="text-embedding-3-small"):
    return client.embeddings.create(input = [text], model=model).data[0].embedding
 
 
 # Function to Embed Text and Upsert Data
-def upsert_memory(memory_id, text, date, memory_type, s3_url):
+def upsert_memory(client, index, memory_id, text, date, memory_type, s3_url):
     # Generate embedding for the text
-    embedding = get_embedding(text)
+    embedding = get_embedding(text, client)
 
     # Prepare the upsert payload
     metadata = {
@@ -83,7 +83,7 @@ def lambda_handler(event, context):
         memory_type = url.split("/")[-1].split("_")[1].replace(".txt", "")
         
         # Embed the text and upsert to Pinecone
-        upsert_memory(memory_id, text, date, memory_type, url)
+        upsert_memory(client, index, memory_id, text, date, memory_type, url)
         results.append({"id": memory_id, "date": date, "type": memory_type, "s3_url": url})
     
     # Return the image metadata for the next step
