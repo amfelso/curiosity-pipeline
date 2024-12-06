@@ -27,6 +27,13 @@ jobs:
       - name: Build with SAM
         run: sam build --use-container
 
+      - name: Debug Parameters
+        run: |
+          echo "PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY:+SET }}"
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY:+SET }}"
+          echo "NASA_API_KEY=${{ secrets.NASA_API_KEY:+SET }}"
+          echo "S3_BUCKET=${{ vars.S3_BUCKET:+SET }}"
+
       # Deploy the application using SAM with Lambda environment variables
       - name: Deploy with SAM
         run: |
