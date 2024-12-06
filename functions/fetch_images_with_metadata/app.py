@@ -1,7 +1,6 @@
 import requests
 import json
 import os
-import sys
 from dotenv import load_dotenv
 import logging
 import random

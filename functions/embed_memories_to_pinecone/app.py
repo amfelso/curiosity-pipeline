@@ -4,7 +4,6 @@ from uuid import uuid4
 import json
 import logging
 import os
-import sys
 import boto3
 from dotenv import load_dotenv
 from urllib.parse import urlparse
