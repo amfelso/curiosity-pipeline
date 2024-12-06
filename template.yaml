@@ -35,7 +35,7 @@ Resources:
     Properties:
       LayerName: MarsImageProcessingLayer
       Description: Dependencies for Mars Image Processing functions
-      ContentUri: layers/mars_image_processing/
+      ContentUri: layers/curiosity_pipeline/
       CompatibleRuntimes:
         - python3.12
       RetentionPolicy: Retain
