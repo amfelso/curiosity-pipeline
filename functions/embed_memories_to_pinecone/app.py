@@ -26,6 +26,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+
 def get_text_from_s3(url):
     # Get text from S3
     s3_client = boto3.client('s3')
@@ -68,7 +69,8 @@ def lambda_handler(event, context):
     """
     Lambda function to generate embeddings for memories and upsert them to Pinecone index.
 
-    Input: {'urls': ['https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/2024-01-08/image1216927_memory.txt']}
+    Input: {'urls': ['https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/
+                      2024-01-08/image1216927_memory.txt']}
     """
     urls = event.get("urls", [])
     results = []
@@ -94,10 +96,15 @@ def lambda_handler(event, context):
 if __name__ == "__main__":
     # Test the function locally
     logger.info("Testing locally...")
-    test_event = {"urls": ["https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/2024-01-08/image1216927_memory.txt",
-                           "https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/2024-01-08/image1216942_memory.txt",
-                           "https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/2024-01-08/image1216944_memory.txt",
-                           "https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/2024-01-08/image1216948_memory.txt",
-                           "https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/2024-01-08/image1216966_memory.txt"]}
+    test_event = {"urls": [("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
+                            "2024-01-08/image1216927_memory.txt"),
+                           ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
+                            "2024-01-08/image1216942_memory.txt"),
+                           ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
+                            "2024-01-08/image1216944_memory.txt"),
+                           ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
+                            "2024-01-08/image1216948_memory.txt"),
+                           ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
+                            "2024-01-08/image1216966_memory.txt")]}
     result = lambda_handler(test_event, None)
     logger.info(f"Result: {result}")
