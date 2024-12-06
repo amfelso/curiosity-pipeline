@@ -49,4 +49,5 @@ jobs:
 
       # Run integration tests
       - name: Run integration tests
-        run: AWS_SAM_STACK_NAME="mars-image-pipeline" python -m pytest tests/integration -v
+      - run: pip install -r tests/requirements.txt --user
+      - run: AWS_SAM_STACK_NAME="mars-image-pipeline" python -m pytest tests/integration -v
