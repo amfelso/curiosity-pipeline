@@ -18,6 +18,7 @@ pinecone-plugin-inference==3.0.0
 pinecone-plugin-interface==0.0.7
 pydantic==2.10.3
 pydantic_core==2.27.1
+pytest==7.4.4
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 requests==2.25.1
