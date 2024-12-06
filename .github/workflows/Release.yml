@@ -23,9 +23,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Debug Environment Variable
-        run: echo "S3_BUCKET=${{ vars.S3_BUCKET }}"
-
       # Build the application using SAM
       - name: Build with SAM
         run: sam build --use-container
@@ -37,6 +34,7 @@ jobs:
           NASA_API_KEY: ${{ secrets.NASA_API_KEY }}
           S3_BUCKET: ${{ vars.S3_BUCKET }}
         run: |
+          echo "Using S3_BUCKET=${{ env.S3_BUCKET }}"
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
@@ -45,10 +43,10 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region us-east-1 \
             --parameter-overrides \
-              ParameterKey=PineconeApiKey,ParameterValue=$PINECONE_API_KEY \
-              ParameterKey=OpenAiApiKey,ParameterValue=$OPENAI_API_KEY \
-              ParameterKey=NasaApiKey,ParameterValue=$NASA_API_KEY \
-              ParameterKey=S3Bucket,ParameterValue=$S3_BUCKET
+              ParameterKey=PineconeApiKey,ParameterValue=${{ secrets.PINECONE_API_KEY }} \
+              ParameterKey=OpenAiApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }} \
+              ParameterKey=NasaApiKey,ParameterValue=${{ secrets.NASA_API_KEY }} \
+              ParameterKey=S3Bucket,ParameterValue=${{ env.S3_BUCKET }}
 
       # Install dependencies for integration testing
       - name: Install Python dependencies
