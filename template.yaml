@@ -2,6 +2,20 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: SAM Template for Mars Image Processing Pipeline
 
+Parameters:
+  PineconeApiKey:
+    Type: String
+    Description: API Key for Pinecone
+  OpenAiApiKey:
+    Type: String
+    Description: API Key for OpenAI
+  NasaApiKey:
+    Type: String
+    Description: API Key for NASA
+  S3Bucket:
+    Type: String
+    Description: S3 bucket for storing Mars images and metadata
+
 Resources:
   MarsImageProcessingStateMachine:
     Type: AWS::Serverless::StateMachine
