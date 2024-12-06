@@ -29,10 +29,29 @@ jobs:
 
       - name: Debug Parameters
         run: |
-          echo "PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY:+SET }}"
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY:+SET }}"
-          echo "NASA_API_KEY=${{ secrets.NASA_API_KEY:+SET }}"
-          echo "S3_BUCKET=${{ vars.S3_BUCKET:+SET }}"
+          if [ -n "${{ secrets.PINECONE_API_KEY }}" ]; then
+            echo "PINECONE_API_KEY is SET"
+          else
+            echo "PINECONE_API_KEY is NOT SET"
+          fi
+
+          if [ -n "${{ secrets.OPENAI_API_KEY }}" ]; then
+            echo "OPENAI_API_KEY is SET"
+          else
+            echo "OPENAI_API_KEY is NOT SET"
+          fi
+
+          if [ -n "${{ secrets.NASA_API_KEY }}" ]; then
+            echo "NASA_API_KEY is SET"
+          else
+            echo "NASA_API_KEY is NOT SET"
+          fi
+
+          if [ -n "${{ vars.S3_BUCKET }}" ]; then
+            echo "S3_BUCKET is SET"
+          else
+            echo "S3_BUCKET is NOT SET"
+          fi
 
       # Deploy the application using SAM with Lambda environment variables
       - name: Deploy with SAM
