@@ -35,6 +35,7 @@ LAMBDA_NAME = "Lambda1: FetchImages"
 LANDING_DATE = datetime(2012, 8, 6)  # Curiosity landing date
 SOL_LENGTH_IN_DAYS = 1.027491252  # Length of a sol in Earth days
 
+
 def earth_date_to_sol(earth_date):
     """
     Convert Earth date to Mars sol.
@@ -96,14 +97,16 @@ def lambda_handler(event, context):
             sampled_photos = navcam_photos[:num_images]
             navcam_photos = [{k: v for k, v in photo.items() if k in
                             ["id", "earth_date", "sol", "img_src"]} for photo in sampled_photos]
-            update_pipeline_log(earth_date, sol=sol, lambda_name=LAMBDA_NAME, lambda_status="Success", lambda_output=navcam_photos)
+            update_pipeline_log(earth_date, sol=sol, lambda_name=LAMBDA_NAME,
+                                lambda_status="Success", lambda_output=navcam_photos)
         return {
                 "statusCode": 200,
                 "body": json.dumps(navcam_photos)
             }
     except Exception as e:
         logger.error(f"An internal error occurred: {e}")
-        update_pipeline_log(earth_date, lambda_name=LAMBDA_NAME, lambda_status="Error", lambda_output=str(e))
+        update_pipeline_log(earth_date, lambda_name=LAMBDA_NAME, lambda_status="Error",
+                            lambda_output=str(e))
         return {
             "statusCode": 500,
             "body": json.dumps({"error": str(e)})

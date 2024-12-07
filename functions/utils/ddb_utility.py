@@ -10,7 +10,9 @@ TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(TABLE_NAME)
 
-def update_pipeline_log(earth_date, sol=None, lambda_name=None, lambda_status=None, lambda_output=None):
+
+def update_pipeline_log(earth_date, sol=None, lambda_name=None,
+                        lambda_status=None, lambda_output=None):
     """
     Update the PipelineLog table in DynamoDB with the status and output of a Lambda function.
 
@@ -21,7 +23,7 @@ def update_pipeline_log(earth_date, sol=None, lambda_name=None, lambda_status=No
         timestamp = datetime.utcnow().isoformat()
 
         # Define the Lambda-specific field name
-        lambda_field = lambda_name.replace(" ", "_").replace(":", "_")  # Normalize the name for DynamoDB keys
+        lambda_field = lambda_name.replace(" ", "_").replace(":", "_")  # Normalize name for keys.
 
         # Prepare the update expression for the specific Lambda
         update_expression = f"SET {lambda_field} = :lambda_data, updated_at = :updated_at"
