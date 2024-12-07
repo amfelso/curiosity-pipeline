@@ -54,8 +54,7 @@ The pipeline's nightly schedule is disabled by default. To enable it:
 1. Open the `template.yaml` file in the project directory.
 2. Locate the `MVPEventBridgeRule` resource under the `Resources` section.
 3. Update the `State` property to `ENABLED`:
-   ```yaml
-  # EventBridge Rule for MVP Simulation
+```yaml
   MVPEventBridgeRule:
     Type: AWS::Events::Rule
     Properties:
@@ -65,10 +64,9 @@ The pipeline's nightly schedule is disabled by default. To enable it:
           Id: "DailySchedulerLambdaTarget"
           Input: '{"simulation_id": "mvp"}'
       State: DISABLED
-   ```
+```
 
 ---
-
 
 ## **DynamoDB Pipeline Log**
 
