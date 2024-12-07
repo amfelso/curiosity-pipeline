@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: SAM Template for Mars Image Processing Pipeline
+Description: SAM Template for Mars Image Processing Pipeline with Daily Scheduling
 
 Parameters:
   PineconeApiKey:
@@ -14,6 +14,7 @@ Parameters:
     Description: API Key for NASA
 
 Resources:
+  # State Machine for Mars Image Processing
   MarsImageProcessingStateMachine:
     Type: AWS::Serverless::StateMachine
     Properties:
@@ -24,13 +25,6 @@ Resources:
         GenerateEmbeddingsFunctionArn: !GetAtt GenerateMarsImageEmbeddingFunction.Arn
         DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
         DDBTransactionTable: !Ref PipelineTransactionLogTable
-      Events:
-        NightlySchedule:
-          Type: Schedule
-          Properties:
-            Description: Schedule to run the Mars Image Processing State Machine nightly
-            Enabled: False
-            Schedule: "rate(1 day)"
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref FetchMarsImagesFunction
@@ -38,9 +32,72 @@ Resources:
             FunctionName: !Ref ProcessMarsImageMetadataFunction
         - LambdaInvokePolicy:
             FunctionName: !Ref GenerateMarsImageEmbeddingFunction
-        - DynamoDBWritePolicy:
-            TableName: !Ref PipelineTransactionLogTable
-  
+
+  # DynamoDB Table for Pipeline Logs
+  PipelineTransactionLogTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: PipelineTransactionLog
+      PrimaryKey:
+        Name: EarthDate
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  # DynamoDB Table for Simulated Dates
+  SimulatedDatesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: SimulatedDates
+      PrimaryKey:
+        Name: simulation_id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  # Lambda for Daily Scheduling
+  DailySchedulerLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/
+      Handler: daily_scheduler.app.lambda_handler
+      Runtime: python3.9
+      Timeout: 60
+      Environment:
+        Variables:
+          SIMULATED_DATES_TABLE: !Ref SimulatedDatesTable
+          STEP_FUNCTION_ARN: !Ref MarsImageProcessingStateMachine
+      Policies:
+        - Statement:
+            - Sid: DynamoDBAccessPolicy
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:UpdateItem
+              Resource: 
+              - !GetAtt SimulatedDatesTable.Arn
+              - !GetAtt PipelineTransactionLogTable.Arn
+        - Statement:
+            - Sid: StepFunctionsStartExecutionPolicy
+              Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource: !Ref MarsImageProcessingStateMachine
+
+  # EventBridge Rule for MVP Simulation
+  MVPEventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt DailySchedulerLambda.Arn
+          Id: "DailySchedulerLambdaTarget"
+          Input: '{"simulation_id": "mvp"}'
+      State: DISABLED
+
+  # Layer for Dependencies
   MarsImageProcessingLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -57,6 +114,7 @@ Resources:
         UsePipenv: false
         RequirementsFile: requirements.txt
 
+  # Lambda Functions
   FetchMarsImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -75,14 +133,15 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
       Policies:
-      - Statement:
-        - Sid: ddbPolicy
-          Effect: Allow
-          Action:
-          - ddb:PutItem
-          - ddb:UpdateItem
-          - ddb:GetItem
-          Resource: '*'
+        - Statement:
+            - Sid: ddbPolicy
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: 
+              - !GetAtt PipelineTransactionLogTable.Arn
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
@@ -101,26 +160,27 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
       Policies:
-      - Statement:
-        - Sid: RekognitionPolicy
-          Effect: Allow
-          Action:
-          - rekognition:DetectLabels
-          Resource: '*'
-        - Sid: s3Policy
-          Effect: Allow
-          Action:
-          - s3:GetObject
-          - s3:PutObject
-          Resource: '*'
-        - Sid: ddbPolicy
-          Effect: Allow
-          Action:
-          - ddb:PutItem
-          - ddb:UpdateItem
-          - ddb:GetItem
-          Resource: '*'
-
+        - Statement:
+            - Sid: RekognitionPolicy
+              Effect: Allow
+              Action:
+                - rekognition:DetectLabels
+              Resource: '*'
+        - Statement:
+            - Sid: s3Policy
+              Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: 'arn:aws:s3:::curiosity-data-1205/*'
+        - Statement:
+            - Sid: ddbPolicy
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: !GetAtt PipelineTransactionLogTable.Arn
 
   GenerateMarsImageEmbeddingFunction:
     Type: AWS::Serverless::Function
@@ -139,36 +199,31 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
       Policies:
-      - Statement:
-        - Sid: s3Policy
-          Effect: Allow
-          Action:
-          - s3:GetObject
-          - s3:PutObject
-          Resource: '*'
-        - Sid: ddbPolicy
-          Effect: Allow
-          Action:
-          - ddb:PutItem
-          - ddb:UpdateItem
-          - ddb:GetItem
-          Resource: '*'
-
-  PipelineTransactionLogTable:
-    Type: AWS::Serverless::SimpleTable
-    Properties:
-      PrimaryKey:
-        Name: EarthDate
-        Type: String
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
+        - Statement:
+            - Sid: s3Policy
+              Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: 'arn:aws:s3:::curiosity-data-1205/*'
+        - Statement:
+            - Sid: ddbPolicy
+              Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: !GetAtt PipelineTransactionLogTable.Arn
 
 Outputs:
   MarsImageProcessingStateMachineArn:
     Description: "Mars Image Processing State Machine ARN"
     Value: !Ref MarsImageProcessingStateMachine
 
-  MarsImageProcessingStateMachineRoleArn:
-    Description: "IAM Role for the Mars Image Processing State Machine"
-    Value: !GetAtt MarsImageProcessingStateMachineRole.Arn
+  DailySchedulerLambdaArn:
+    Description: "ARN for the DailySchedulerLambda"
+    Value: !GetAtt DailySchedulerLambda.Arn
+
+  PipelineTransactionLogTableName:
+    Description: "DynamoDB table for transaction logging"
+    Value: !Ref PipelineTransactionLogTable
