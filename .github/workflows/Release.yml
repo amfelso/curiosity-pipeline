@@ -7,6 +7,10 @@ jobs:
     environment: release
     runs-on: ubuntu-latest
     steps:
+      - name: Clean up _temp directory
+        run: rm -rf ${{ runner.temp }}
+
+    # Add other steps here
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -23,24 +27,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # Build the application using SAM
-      - name: Build with SAM
-        run: sam build --use-container
+      - name: SAM validate
+        run: sam validate
  
-      - name: Deploy with SAM
-        env:
-          PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          NASA_API_KEY: ${{ secrets.NASA_API_KEY }}
-        run: |
-          sam deploy \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --stack-name mars-image-pipeline \
-            --s3-bucket sam-assets-12032024 \
-            --capabilities CAPABILITY_IAM \
-            --region us-east-1 \
-            --parameter-overrides \
-              ParameterKey=PineconeApiKey,ParameterValue=${{ secrets.PINECONE_API_KEY }} \
-              ParameterKey=OpenAiApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }} \
-              ParameterKey=NasaApiKey,ParameterValue=${{ secrets.NASA_API_KEY }}
