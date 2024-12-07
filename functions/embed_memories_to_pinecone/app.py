@@ -68,7 +68,9 @@ def lambda_handler(event, context):
     Input: {'urls': ['https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/
                       2024-01-08/image1216927_memory.txt']}
     """
-    urls = event.get("urls", [])
+    process_result = event["process_result"]
+    body = process_result.get("body", '[]')
+    urls = json.loads(body)
     results = []
 
     # Initialize Pinecone and OpenAI clients
@@ -100,7 +102,11 @@ def lambda_handler(event, context):
 if __name__ == "__main__":
     # Test the function locally
     logger.info("Testing locally...")
-    test_event = {"urls": [("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
+    test_event = {
+        "earth_date": "2024-01-08",
+        "process_result": {
+            'statusCode': 200,
+            'body': json.dumps([("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
                             "2024-01-08/image1216927_memory.txt"),
                            ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
                             "2024-01-08/image1216942_memory.txt"),
@@ -109,6 +115,8 @@ if __name__ == "__main__":
                            ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
                             "2024-01-08/image1216948_memory.txt"),
                            ("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
-                            "2024-01-08/image1216966_memory.txt")]}
+                            "2024-01-08/image1216966_memory.txt")])
+                            }
+    }
     result = lambda_handler(test_event, None)
     logger.info(f"Result: {result}")
