@@ -9,6 +9,9 @@ This application automates the retrieval, processing, and embedding of Mars rove
 
 The pipeline runs on a nightly schedule (disabled by default to save costs) and performs the following steps:
 
+0. **Daily Scheduler**:
+   - Triggers the pipeline on a nightly schedule to automate the retrieval and processing of Mars rover images.
+
 1. **Fetch Images and Metadata**:
    - Retrieves 1-5 random images from NASA's Mars Rover API for a specific date (Earth date or sol).
    - Outputs a list of image URLs and associated metadata.
@@ -28,6 +31,7 @@ The pipeline is designed to enable a chatbot with contextual memory, simulating 
 ## Project Structure
 
 - **`functions`**: Code for Lambda functions handling each pipeline step:
+  - `daily_scheduler`: Triggers the pipeline on a nightly schedule.
   - `fetch_images_with_metadata`: Retrieves images and metadata.
   - `generate_memories_and_diary`: Creates structured memory and diary entries in S3.
   - `embed_memories_to_pinecone`: Embeds memories and diary entries for RAG use.
@@ -48,18 +52,102 @@ Pipeline will automatically deploy via Github action when code updates are merge
 The pipeline's nightly schedule is disabled by default. To enable it:
 
 1. Open the `template.yaml` file in the project directory.
-2. Locate the `NightlySchedule` resource under the `Events` section of the state machine definition.
-3. Update the `Enabled` property to `True`:
+2. Locate the `MVPEventBridgeRule` resource under the `Resources` section.
+3. Update the `State` property to `ENABLED`:
    ```yaml
-   NightlySchedule:
-     Type: Schedule
-     Properties:
-       Description: Schedule to run the Mars Image Processing State Machine nightly
-       Enabled: True
-       Schedule: "rate(1 day)"
+  # EventBridge Rule for MVP Simulation
+  MVPEventBridgeRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: "rate(1 day)"
+      Targets:
+        - Arn: !GetAtt DailySchedulerLambda.Arn
+          Id: "DailySchedulerLambdaTarget"
+          Input: '{"simulation_id": "mvp"}'
+      State: DISABLED
    ```
 
 ---
+
+
+## **DynamoDB Pipeline Log**
+
+The DynamoDB pipeline log is used to track the execution status and outputs of each stage in the pipeline. It ensures a complete record of the pipeline’s progress and aids in debugging or auditing.
+
+### **Table Name**
+- `PipelineTransactionLogTable`
+
+### **Primary Key**
+- `EarthDate` (String): Represents the Earth date corresponding to the pipeline run.
+
+### **Attributes**
+The table structure includes the following attributes:
+
+| Attribute                  | Type     | Description                                                                 |
+|----------------------------|----------|-----------------------------------------------------------------------------|
+| `EarthDate`                | String   | Primary key indicating the Earth date of the pipeline execution.            |
+| `sol`                      | Number   | Corresponding Mars Sol (Martian day) for the Earth date.                    |
+| `Lambda1__FetchImages`     | Map      | Contains the status, output, and update timestamp for the Fetch Images Lambda. |
+| `Lambda2__GenerateMemories`| Map      | Contains the status, output, and update timestamp for the Generate Memories Lambda. |
+| `Lambda3__EmbedToPinecone` | Map      | Contains the status, output, and update timestamp for the Embed to Pinecone Lambda. |
+| `updated_at`               | String   | Timestamp of the most recent update to the log entry.                       |
+
+### **Lambda Logs Structure**
+Each Lambda log entry is stored as a map with the following keys:
+
+| Key         | Type     | Description                                                         |
+|-------------|----------|---------------------------------------------------------------------|
+| `output`    | List/Map | The output of the Lambda, such as URLs, metadata, or embeddings.    |
+| `status`    | String   | Execution status of the Lambda (`Success`, `Error`, etc.).         |
+| `updated_at`| String   | Timestamp of the last update for this Lambda entry.                |
+
+### **Example Log Entry**
+```json
+{
+  "EarthDate": "2012-08-07",
+  "sol": 1,
+  "Lambda1__FetchImages": {
+    "output": [
+      {
+        "earth_date": "2012-08-07",
+        "id": 2674,
+        "img_src": "http://mars.jpl.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/00001/opgs/edr/ncam/NRA_397586928EDR_F0010008AUT_04096M_.JPG",
+        "sol": 1
+      }
+    ],
+    "status": "Success",
+    "updated_at": "2024-12-07T20:42:50.015223"
+  },
+  "Lambda2__GenerateMemories": {
+    "output": [
+      "https://curiosity-data.s3.amazonaws.com/memories/2012-08-07/image2674_memory.txt"
+    ],
+    "status": "Success",
+    "updated_at": "2024-12-07T21:09:47.448240"
+  },
+  "Lambda3__EmbedToPinecone": {
+    "output": [
+      {
+        "date": "2012-08-07",
+        "id": "4a8f85ba-bd21-404c-8de8-a85ee5801396",
+        "s3_url": "https://curiosity-data.s3.amazonaws.com/memories/2012-08-07/image2674_memory.txt",
+        "type": "memory"
+      }
+    ],
+    "status": "Success",
+    "updated_at": "2024-12-07T21:03:25.350127"
+  },
+  "updated_at": "2024-12-07T21:09:47.448240"
+}
+```
+
+### **Usage**
+1. **Log Updates:**
+   Each Lambda function updates its corresponding entry in the DynamoDB log upon completion or failure.
+2. **Tracking Progress:**
+   Use the `EarthDate` key to retrieve pipeline logs for a specific date and check the progress or status of each Lambda.
+3. **Error Handling:**
+   The `status` field in each Lambda log helps identify and debug pipeline failures.
 
 ## Folder Structure for Memories
 
