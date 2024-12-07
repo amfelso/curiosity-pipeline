@@ -22,7 +22,7 @@ jobs:
       - run: python -m pytest tests -v
         env:
           STEP_FUNCTION_ARN: arn:aws:states:us-east-1:056785171326:stateMachine:MarsImageProcessingStateMachine-aBQbFUXXaPX8
-          SIMULATED_DATES_TABLE: SimulatedDatesTable
+          SIMULATED_DATES_TABLE: SimulatedDates
           DDB_TABLE_NAME: PipelineTransactionLog
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
