@@ -27,7 +27,7 @@ def earth_date_to_sol(earth_date):
 
     # Calculate difference in days
     earth_date_obj = datetime.strptime(earth_date, "%Y-%m-%d")
-    days_since_landing = (earth_date_obj - landing_date).days
+    days_since_landing = (earth_date_obj - landing_date).days + 1
 
     # Convert to sols
     sol = days_since_landing / sol_length_in_days
