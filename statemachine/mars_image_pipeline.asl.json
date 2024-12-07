@@ -8,7 +8,7 @@
       "Parameters": {
         "earth_date.$": "$.earth_date"
       },
-      "ResultPath": "$.earth_date",
+      "ResultPath": "$.fetch_result",
       "Retry": [
         {
           "ErrorEquals": ["States.TaskFailed"],
@@ -23,9 +23,10 @@
       "Type": "Task",
       "Resource": "${ProcessMetadataFunctionArn}",
       "Parameters": {
-        "earth_date.$": "$.earth_date"
+        "earth_date.$": "$.earth_date",
+        "fetch_result.$": "$.fetch_result"
       },
-      "ResultPath": "$.earth_date",
+      "ResultPath": "$.process_result",
       "Retry": [
         {
           "ErrorEquals": ["States.TaskFailed"],
@@ -40,9 +41,10 @@
       "Type": "Task",
       "Resource": "${GenerateEmbeddingsFunctionArn}",
       "Parameters": {
-        "earth_date.$": "$.earth_date"
+        "earth_date.$": "$.earth_date",
+        "process_result.$": "$.process_result"
       },
-      "ResultPath": "$.earth_date",
+      "ResultPath": "$.embedding_result",
       "Retry": [
         {
           "ErrorEquals": ["States.TaskFailed"],
