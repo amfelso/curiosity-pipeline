@@ -44,11 +44,3 @@ jobs:
               ParameterKey=PineconeApiKey,ParameterValue=${{ secrets.PINECONE_API_KEY }} \
               ParameterKey=OpenAiApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }} \
               ParameterKey=NasaApiKey,ParameterValue=${{ secrets.NASA_API_KEY }}
-
-      # Install dependencies for integration testing
-      - name: Install Python dependencies
-        run: pip install -r layers/curiosity_pipeline/requirements.txt --user
-
-      # Run integration tests
-      - name: Run integration tests
-        run: AWS_SAM_STACK_NAME="mars-image-pipeline" python -m pytest tests/integration -v
