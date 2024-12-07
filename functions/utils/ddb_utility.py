@@ -58,7 +58,7 @@ def update_pipeline_log(earth_date, sol=None, lambda_name=None,
             ExpressionAttributeValues=expression_values,
             ReturnValues="UPDATED_NEW"
         )
-        logger.info(f"Updated PipelineLog for {earth_date} with {lambda_name} status: {lambda_status}")
+        logger.info(f"Updated log for {earth_date} with {lambda_name} status: {lambda_status}")
         return response
     except (BotoCoreError, ClientError) as e:
         logger.error(f"Error updating DynamoDB: {e}")
