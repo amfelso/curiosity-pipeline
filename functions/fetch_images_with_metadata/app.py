@@ -78,6 +78,7 @@ def lambda_handler(event, context):
         # filter each item to only return key fields
         sampled_photos = [{k: v for k, v in photo.items() if k in
                          ["id", "earth_date", "sol", "img_src"]} for photo in sampled_photos]
+        log = f"Sampled photos: {sampled_photos}"
         return {
                 "statusCode": 200,
                 "body": json.dumps(sampled_photos)

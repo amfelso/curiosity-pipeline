@@ -68,8 +68,8 @@ def lambda_handler(event, context):
     Input: {'urls': ['https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/
                       2024-01-08/image1216927_memory.txt']}
     """
-    process_results = event["process_results"]
-    body = process_results.get("body", '[]')
+    process_result = event["process_result"]
+    body = process_result.get("body", '[]')
     urls = json.loads(body)
     results = []
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     logger.info("Testing locally...")
     test_event = {
         "earth_date": "2024-01-08",
-        "process_results": {
+        "process_result": {
             'statusCode': 200,
             'body': json.dumps([("https://curiosity-data-1205.s3.us-east-1.amazonaws.com/memories/"
                             "2024-01-08/image1216927_memory.txt"),

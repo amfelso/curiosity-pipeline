@@ -40,8 +40,8 @@ def lambda_handler(event, context):
     """
     Lambda function to generate diary entries and memory entries for the given date.
     """
-    fetch_results = event["fetch_results"]
-    body = fetch_results.get("body", '[]')
+    fetch_result = event["fetch_result"]
+    body = fetch_result.get("body", '[]')
     photos = json.loads(body)
     results = []
     
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     logger.info("Testing locally...")
     test_event = {
         "earth_date": "2024-01-08",
-        "fetch_results": {
+        "fetch_result": {
             'statusCode': 200,
             'body': json.dumps([
                 {
