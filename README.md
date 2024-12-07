@@ -47,6 +47,54 @@ The pipeline is designed to enable a chatbot with contextual memory, simulating 
 
 Pipeline will automatically deploy via Github action when code updates are merged to release branch.
 
+## **Simulated Dates Table and EventBridge**
+
+The **Simulated Dates Table** and **EventBridge** work together to manage and trigger the Mars Rover simulation.
+
+### **Simulated Dates Table**
+
+This DynamoDB table stores the current Earth date for each active simulation. It allows the simulation to track and increment the Earth date daily or maintain a static date for testing purposes.
+
+#### **Table Structure**
+
+| Attribute       | Type    | Description                                       |
+|------------------|---------|---------------------------------------------------|
+| `simulation_id`  | String  | Primary key that uniquely identifies a simulation (e.g., `mvp`, `test`). |
+| `earth_date`     | String  | Current Earth date for the simulation in `YYYY-MM-DD` format. |
+
+#### **Example Table Entry**
+```json
+{
+  "simulation_id": "mvp",
+  "earth_date": "2012-08-06"
+}
+```
+
+
+### **EventBridge and Daily Scheduler**
+
+EventBridge is used to schedule the simulation’s daily updates. It triggers the **DailySchedulerLambda**, which handles the following tasks:
+
+1. **Fetch the Simulation Date**:
+   - Reads the current `earth_date` for the specified `simulation_id` from the **Simulated Dates Table**.
+
+2. **Increment the Date**:
+   - Increments the `earth_date` for simulations like `mvp`. For `test`, the date remains static.
+
+3. **Trigger the Pipeline**:
+   - Starts the Step Function for the pipeline with the current `earth_date`.
+
+#### **EventBridge Rule**
+- **Frequency**: `"rate(1 day)"` ensures the simulation progresses daily.
+- **Target**: The rule invokes the **DailySchedulerLambda** with a payload specifying the `simulation_id`.
+
+#### **Example EventBridge Payload**
+```json
+{
+  "simulation_id": "mvp"
+}
+```
+
 ### Enabling the Schedule
 
 The pipeline's nightly schedule is disabled by default. To enable it:
