@@ -126,12 +126,12 @@ def lambda_handler(event, context):
             ]
             response = client.chat.completions.create(model="gpt-4", messages=messages)
             generated_text = response.choices[0].message.content.strip()
-            print("Memory:", generated_text)
+            logger.info("Successfully generated memory.")
 
             # Upload memory to S3
             s3 = boto3.client("s3")
             bucket = "curiosity-data-1205"
-            logger.info(f"Uploading memory to S3 bucket: {bucket}")
+            logger.info(f"Uploading memory to S3...")
             memory_filename = f"image{photo['id']}_memory.txt"
             memory_key = f"memories/{photo['earth_date']}/{memory_filename}"
             response = s3.put_object(

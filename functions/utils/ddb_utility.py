@@ -2,6 +2,7 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from datetime import datetime
 import os
+import logging
 
 # DynamoDB Table Name
 TABLE_NAME = os.environ["DDB_TABLE_NAME"]
@@ -9,6 +10,15 @@ TABLE_NAME = os.environ["DDB_TABLE_NAME"]
 # DynamoDB Client
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(TABLE_NAME)
+
+# Define logger
+logger = logging.getLogger()
+if not logger.hasHandlers():  # Prevent duplicate handlers during testing
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+logger.setLevel(logging.INFO)  # Set logging level
 
 
 def update_pipeline_log(earth_date, sol=None, lambda_name=None,
@@ -48,7 +58,8 @@ def update_pipeline_log(earth_date, sol=None, lambda_name=None,
             ExpressionAttributeValues=expression_values,
             ReturnValues="UPDATED_NEW"
         )
+        logger.info(f"Updated PipelineLog for {earth_date} with {lambda_name} status: {lambda_status}")
         return response
     except (BotoCoreError, ClientError) as e:
-        print(f"Error updating DynamoDB: {e}")
+        logger.error(f"Error updating DynamoDB: {e}")
         return {"error": str(e)}
