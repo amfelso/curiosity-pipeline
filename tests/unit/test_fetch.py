@@ -3,7 +3,7 @@ import json
 
 
 def test_fetch_images():
-    input_payload = {"sols": [4061]}
+    input_payload = {"earth_date": "2012-08-07"}
 
     data = app.lambda_handler(input_payload, "")
     first_photo = json.loads(data["body"])[0]
