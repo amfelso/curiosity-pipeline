@@ -112,7 +112,7 @@ def lambda_handler(event, context):
 
         # Upload memory to S3
         s3 = boto3.client('s3')
-        bucket = os.environ.get("S3_BUCKET", "curiosity-data-1205")
+        bucket = "curiosity-data-1205"
         logger.info(f"Uploading memory to S3 bucket: {bucket}")
         memory_filename = f"image{photo['id']}_memory.txt"
         memory_key = f"memories/{photo['earth_date']}/{memory_filename}"
