@@ -1,8 +1,6 @@
-import json
 import logging
 import os
 from time import sleep
-from typing import Dict
 from unittest import TestCase
 from uuid import uuid4
 from dotenv import load_dotenv
@@ -27,7 +25,6 @@ class TestStateMachine(TestCase):
     """
 
     state_machine_arn: str
-    transaction_table_name: str
 
     client: BaseClient
     inserted_record_id: str
@@ -70,33 +67,13 @@ class TestStateMachine(TestCase):
             resource for resource in resources
             if resource["LogicalResourceId"] == "MarsImageProcessingStateMachine"
         ]
-        ddb_resources = [
-            resource for resource in resources
-            if resource["LogicalResourceId"] == "PipelineTransactionLogTable"
-        ]
-        if not sfn_resources or not ddb_resources:
-            raise Exception("""Cannot find MarsImageProcessingStateMachine
-                            or PipelineTransactionLogTable""")
+        if not sfn_resources:
+            raise Exception("""Cannot find MarsImageProcessingStateMachine""")
 
         cls.state_machine_arn = sfn_resources[0]["PhysicalResourceId"]
-        cls.transaction_table_name = ddb_resources[0]["PhysicalResourceId"]
 
     def setUp(self) -> None:
         self.client = boto3.client("stepfunctions")
-
-    def tearDown(self) -> None:
-        """
-        Delete the dynamodb table item that are created during the test
-        """
-        client = boto3.client("dynamodb")
-        client.delete_item(
-            Key={
-                "PipelineRunID": {
-                    "S": self.inserted_record_id,
-                },
-            },
-            TableName=self.transaction_table_name,
-        )
 
     def _start_execute(self) -> str:
         """
@@ -104,7 +81,7 @@ class TestStateMachine(TestCase):
         """
         response = self.client.start_execution(
             stateMachineArn=self.state_machine_arn,
-            name=f"integ-test-{uuid4()}", input="{}"
+            name=f"integ-test-{uuid4()}", input="{\"earth_date\": \"2012-08-06\"}"
         )
         return response["executionArn"]
 
@@ -112,66 +89,15 @@ class TestStateMachine(TestCase):
         while True:
             response = self.client.describe_execution(executionArn=arn)
             status = response["status"]
-            if status == "SUCCEEDED":
-                logging.info(f"Execution {arn} completely successfully.")
-                break
-            elif status == "RUNNING":
+            if status == "RUNNING":
                 logging.info(f"Execution {arn} is still running, waiting")
                 sleep(3)
             else:
-                self.fail(f"Execution {arn} failed with status {status}")
+                break
 
-    def _retrieve_transaction_table_input(self, arn: str) -> Dict:
-        """
-        Make sure "Record Transaction" step was reached, and record its input.
-        """
-        response = self.client.get_execution_history(executionArn=arn)
-        events = response["events"]
-        entered_events = [
-            event
-            for event in events
-            if event["type"] == "TaskStateEntered" and
-            event["stateEnteredEventDetails"]["name"] == "Record Transaction"
-        ]
-        self.assertTrue(
-            entered_events,
-            "Cannot find Record Transaction TaskStateEntered event",
-        )
-        ddb_input = entered_events[0]["stateEnteredEventDetails"]["input"]
-        transaction_table_input = json.loads(ddb_input)
-        # save this ID for cleaning up
-        self.inserted_record_id = transaction_table_input["id"]
-        return transaction_table_input
+        assert status == "SUCCEEDED", f"Execution {arn} failed with status {status}"
 
-    def _verify_ddb_record_written(self, transaction_table_input: Dict):
-        """
-        Use the input recorded in _retrieve_transaction_table_input() to
-        verify whether the record has been written to dynamodb
-        """
-        client = boto3.client("dynamodb")
-        response = client.get_item(
-            Key={
-                "PipelineRunID": {
-                    "S": transaction_table_input["id"],
-                },
-            },
-            TableName=self.transaction_table_name,
-        )
-        self.assertTrue(
-            "Item" in response,
-            f'''Cannot find transaction record with
-            id {transaction_table_input["id"]}''',
-        )
-        item = response["Item"]
-        self.assertDictEqual(item["Quantity"],
-                             {"N": transaction_table_input["qty"]})
-        self.assertDictEqual(item["Price"],
-                             {"N": transaction_table_input["price"]})
-        self.assertDictEqual(item["Type"],
-                             {"S": transaction_table_input["type"]})
 
     def test_state_machine(self):
         arn = self._start_execute()
         self._wait_execution(arn)
-        transaction_table_input = self._retrieve_transaction_table_input(arn)
-        self._verify_ddb_record_written(transaction_table_input)

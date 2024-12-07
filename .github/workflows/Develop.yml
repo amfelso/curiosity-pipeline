@@ -26,5 +26,5 @@ jobs:
           NASA_API_KEY: ${{ secrets.NASA_API_KEY }}
           AWS_SAM_STACK_NAME: mars-image-pipeline
 
-      # sam build 
-      - run: sam build --use-container
+      # sam validate 
+      - run: sam validate

@@ -48,10 +48,10 @@ Resources:
       Description: Dependencies for Mars Image Processing functions
       ContentUri: layers/curiosity_pipeline/
       CompatibleRuntimes:
-        - python3.13
+        - python3.9
       RetentionPolicy: Retain
     Metadata:
-      BuildMethod: python3.13
+      BuildMethod: python3.9
       BuildProperties:
         Pipfile: false
         UsePipenv: false
@@ -62,7 +62,7 @@ Resources:
     Properties:
       CodeUri: functions/fetch_images_with_metadata/
       Handler: app.lambda_handler
-      Runtime: python3.13
+      Runtime: python3.9
       Description: Fetches the latest images from the NASA Mars Rover API.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -87,7 +87,7 @@ Resources:
     Properties:
       CodeUri: functions/generate_memories_and_diary/
       Handler: app.lambda_handler
-      Runtime: python3.13
+      Runtime: python3.9
       Description: Processes metadata for Mars images and stores it in S3.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -124,7 +124,7 @@ Resources:
     Properties:
       CodeUri: functions/embed_memories_to_pinecone/
       Handler: app.lambda_handler
-      Runtime: python3.13
+      Runtime: python3.9
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.
       Layers:
         - !Ref MarsImageProcessingLayer
