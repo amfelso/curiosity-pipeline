@@ -95,7 +95,7 @@ Resources:
         - Arn: !GetAtt DailySchedulerLambda.Arn
           Id: "DailySchedulerLambdaTarget"
           Input: '{"simulation_id": "mvp"}'
-      State: DISABLED
+      State: ENABLED
 
   # Layer for Dependencies
   MarsImageProcessingLayer:
