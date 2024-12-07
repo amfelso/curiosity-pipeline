@@ -190,7 +190,7 @@ if __name__ == "__main__":
                                 ),
                     "earth_date": "2024-01-08"
                 }])
-            }    
+            }
         }
     result = lambda_handler(test_event, None)
     logger.info(f"Result: {result}")
