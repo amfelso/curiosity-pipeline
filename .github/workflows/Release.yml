@@ -5,6 +5,8 @@ on:
 jobs:
   build-deploy:
     environment: release
+    env:
+      S3_BUCKET: your-bucket-name
     runs-on: ubuntu-latest
     steps:
       - name: Clean up _temp directory
