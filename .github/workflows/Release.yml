@@ -27,6 +27,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: SAM validate
-        run: sam validate
+      # sam build 
+      - run: sam build --use-container
  
