@@ -31,7 +31,8 @@ jobs:
       - run: sam build --use-container
 
       # sam deploy
-      - run: sam deploy \
+      - run: |
+          sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --stack-name mars-image-pipeline \
@@ -39,6 +40,6 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region us-east-1 \
             --parameter-overrides \
-            ParameterKey=NasaApiKey,ParameterValue={{ secrets.NASA_API_KEY }} \
-            ParameterKey=PineconeApiKey,ParameterValue={{ secrets.PINECONE_API_KEY }} \
-            ParameterKey=OpenAiApiKey,ParameterValue={{ secrets.OPENAI_API_KEY }} \
+            ParameterKey=NasaApiKey,ParameterValue=${{ secrets.NASA_API_KEY }} \
+            ParameterKey=PineconeApiKey,ParameterValue=${{ secrets.PINECONE_API_KEY }} \
+            ParameterKey=OpenAiApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }} \
