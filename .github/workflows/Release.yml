@@ -9,6 +9,9 @@ jobs:
     steps:
       - name: Clean up _temp directory
         run: rm -rf ${{ runner.temp }}
+
+      - name: Clear cached files
+        run: rm -rf .aws-sam/build .aws-sam/cache
         
       - name: Checkout code
         uses: actions/checkout@v2
