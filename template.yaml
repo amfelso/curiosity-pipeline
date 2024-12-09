@@ -65,8 +65,11 @@ Resources:
       Handler: daily_scheduler.app.lambda_handler
       Runtime: python3.9
       Timeout: 60
+      Layers:
+        - !Ref MarsImageProcessingLayer
       Environment:
         Variables:
+          DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
           SIMULATED_DATES_TABLE: !Ref SimulatedDatesTable
           STEP_FUNCTION_ARN: !Ref MarsImageProcessingStateMachine
       Policies:

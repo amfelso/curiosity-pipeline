@@ -15,13 +15,24 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-      
+
+      # extract SAM Output
+      - name: Get SAM Output
+        id: get_sam_output
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+          STEP_FUNCTION_ARN=$(aws cloudformation describe-stacks --stack-name mars-image-pipeline \
+            --query "Stacks[0].Outputs[?OutputKey=='MarsImageProcessingStateMachineArn'].OutputValue" --output text)
+          echo "STEP_FUNCTION_ARN=$STEP_FUNCTION_ARN" >> .env
+        
       # install and lint
       - run: pip install -r layers/curiosity_pipeline/requirements.txt --user
       - run: python -m flake8 --select F401,F821,E302,E305,E501,F841,W291 --max-line-length 100
       - run: python -m pytest tests -v
         env:
-          STEP_FUNCTION_ARN: arn:aws:states:us-east-1:056785171326:stateMachine:MarsImageProcessingStateMachine-aBQbFUXXaPX8
           SIMULATED_DATES_TABLE: SimulatedDates
           DDB_TABLE_NAME: PipelineTransactionLog
           PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
