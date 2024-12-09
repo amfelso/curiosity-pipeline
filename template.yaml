@@ -65,8 +65,11 @@ Resources:
       Handler: daily_scheduler.app.lambda_handler
       Runtime: python3.9
       Timeout: 60
+      Layers:
+        - !Ref MarsImageProcessingLayer
       Environment:
         Variables:
+          DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
           SIMULATED_DATES_TABLE: !Ref SimulatedDatesTable
           STEP_FUNCTION_ARN: !Ref MarsImageProcessingStateMachine
       Policies:
@@ -97,6 +100,15 @@ Resources:
           Input: '{"simulation_id": "mvp"}'
       State: ENABLED
 
+  # Permission for EventBridge to invoke DailySchedulerLambda
+  PermissionForEventBridgeToInvokeLambda:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DailySchedulerLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt MVPEventBridgeRule.Arn
+      
   # Layer for Dependencies
   MarsImageProcessingLayer:
     Type: AWS::Serverless::LayerVersion

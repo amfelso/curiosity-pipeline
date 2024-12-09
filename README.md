@@ -1,7 +1,7 @@
 # Curiosity Rover Memory System
 
-![DEV Workflow](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Develop.yml/badge.svg)
-![PROD Workflow](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Release.yml/badge.svg)
+[![.github/workflows/Develop.yml](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Develop.yml/badge.svg)](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Develop.yml)
+[![.github/workflows/Release.yml](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Release.yml/badge.svg?branch=release)](https://github.com/amfelso/curiosity-pipeline/actions/workflows/Release.yml)
 
 This application automates the retrieval, processing, and embedding of Mars rover images into a memory system designed for Retrieval-Augmented Generation (RAG). The pipeline is built on AWS Step Functions and serverless architecture to orchestrate data processing with scalability and efficiency.
 
