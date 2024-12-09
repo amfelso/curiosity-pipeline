@@ -97,6 +97,8 @@ def lambda_handler(event, context):
             sampled_photos = navcam_photos[:num_images]
             navcam_photos = [{k: v for k, v in photo.items() if k in
                             ["id", "earth_date", "sol", "img_src"]} for photo in sampled_photos]
+        else:
+            logger.info("No NAVCAM photos found.")
         update_pipeline_log(earth_date, sol=sol, lambda_name=LAMBDA_NAME,
                             lambda_status="Success", lambda_output=navcam_photos)
         return {
