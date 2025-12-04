@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-from datetime import datetime
+from datetime import datetime, UTC
 import logging
 
 # DynamoDB Table Name (hardcoded to match template.yaml)
@@ -30,7 +30,7 @@ def update_pipeline_log(
     """
     try:
         # Create timestamp
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(UTC).isoformat()
 
         # Define the Lambda-specific field name
         lambda_field = lambda_name.replace(" ", "_").replace(

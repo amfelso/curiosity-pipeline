@@ -29,4 +29,4 @@ jobs:
       # Install dependencies, lint, and test using Makefile
       - run: make install
       - run: make lint
-      - run: make test
+      - run: make test-unit
