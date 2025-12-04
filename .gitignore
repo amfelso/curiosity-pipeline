@@ -1,6 +1,17 @@
+# Environment
 .env
-tmp/
-.DS_Store
-__pycache__/
+.venv/
+
+# Build artifacts
 .aws-sam/
+*.pyc
+__pycache__/
+
+# Testing
 .pytest_cache/
+
+# macOS
+.DS_Store
+
+# Temporary
+tmp/
