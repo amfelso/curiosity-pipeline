@@ -10,13 +10,16 @@ This application automates the retrieval, processing, and embedding of Mars rove
 The pipeline runs on a nightly schedule (disabled by default to save costs) and performs the following steps:
 
 0. **Daily Scheduler**:
+
    - Triggers the pipeline on a nightly schedule to automate the retrieval and processing of Mars rover images.
 
 1. **Fetch Images and Metadata**:
+
    - Retrieves 1-5 random images from NASA's Mars Rover API for a specific date (Earth date or sol).
    - Outputs a list of image URLs and associated metadata.
 
 2. **Generate Memories and Diary**:
+
    - Writes daily memory entries for each image, describing key features, speculation, and reflection.
    - Writes a daily diary entry summarizing all image memories for the date.
    - Stores these entries in an **S3 bucket** structured by date.
@@ -57,12 +60,13 @@ This DynamoDB table stores the current Earth date for each active simulation. It
 
 #### **Table Structure**
 
-| Attribute       | Type    | Description                                       |
-|------------------|---------|---------------------------------------------------|
-| `simulation_id`  | String  | Primary key that uniquely identifies a simulation (e.g., `mvp`, `test`). |
-| `earth_date`     | String  | Current Earth date for the simulation in `YYYY-MM-DD` format. |
+| Attribute       | Type   | Description                                                              |
+| --------------- | ------ | ------------------------------------------------------------------------ |
+| `simulation_id` | String | Primary key that uniquely identifies a simulation (e.g., `mvp`, `test`). |
+| `earth_date`    | String | Current Earth date for the simulation in `YYYY-MM-DD` format.            |
 
 #### **Example Table Entry**
+
 ```json
 {
   "simulation_id": "mvp",
@@ -70,25 +74,28 @@ This DynamoDB table stores the current Earth date for each active simulation. It
 }
 ```
 
-
 ### **EventBridge and Daily Scheduler**
 
 EventBridge is used to schedule the simulation’s daily updates. It triggers the **DailySchedulerLambda**, which handles the following tasks:
 
 1. **Fetch the Simulation Date**:
+
    - Reads the current `earth_date` for the specified `simulation_id` from the **Simulated Dates Table**.
 
 2. **Increment the Date**:
+
    - Increments the `earth_date` for simulations like `mvp`. For `test`, the date remains static.
 
 3. **Trigger the Pipeline**:
    - Starts the Step Function for the pipeline with the current `earth_date`.
 
 #### **EventBridge Rule**
+
 - **Frequency**: `"rate(1 day)"` ensures the simulation progresses daily.
 - **Target**: The rule invokes the **DailySchedulerLambda** with a payload specifying the `simulation_id`.
 
 #### **Example EventBridge Payload**
+
 ```json
 {
   "simulation_id": "mvp"
@@ -102,16 +109,17 @@ The pipeline's nightly schedule is disabled by default. To enable it:
 1. Open the `template.yaml` file in the project directory.
 2. Locate the `MVPEventBridgeRule` resource under the `Resources` section.
 3. Update the `State` property to `ENABLED`:
+
 ```yaml
-  MVPEventBridgeRule:
-    Type: AWS::Events::Rule
-    Properties:
-      ScheduleExpression: "rate(1 day)"
-      Targets:
-        - Arn: !GetAtt DailySchedulerLambda.Arn
-          Id: "DailySchedulerLambdaTarget"
-          Input: '{"simulation_id": "mvp"}'
-      State: DISABLED
+MVPEventBridgeRule:
+  Type: AWS::Events::Rule
+  Properties:
+    ScheduleExpression: "rate(1 day)"
+    Targets:
+      - Arn: !GetAtt DailySchedulerLambda.Arn
+        Id: "DailySchedulerLambdaTarget"
+        Input: '{"simulation_id": "mvp"}'
+    State: DISABLED
 ```
 
 ---
@@ -121,33 +129,38 @@ The pipeline's nightly schedule is disabled by default. To enable it:
 The DynamoDB pipeline log is used to track the execution status and outputs of each stage in the pipeline. It ensures a complete record of the pipeline’s progress and aids in debugging or auditing.
 
 ### **Table Name**
+
 - `PipelineTransactionLogTable`
 
 ### **Primary Key**
+
 - `EarthDate` (String): Represents the Earth date corresponding to the pipeline run.
 
 ### **Attributes**
+
 The table structure includes the following attributes:
 
-| Attribute                  | Type     | Description                                                                 |
-|----------------------------|----------|-----------------------------------------------------------------------------|
-| `EarthDate`                | String   | Primary key indicating the Earth date of the pipeline execution.            |
-| `sol`                      | Number   | Corresponding Mars Sol (Martian day) for the Earth date.                    |
-| `Lambda1__FetchImages`     | Map      | Contains the status, output, and update timestamp for the Fetch Images Lambda. |
-| `Lambda2__GenerateMemories`| Map      | Contains the status, output, and update timestamp for the Generate Memories Lambda. |
-| `Lambda3__EmbedToPinecone` | Map      | Contains the status, output, and update timestamp for the Embed to Pinecone Lambda. |
-| `updated_at`               | String   | Timestamp of the most recent update to the log entry.                       |
+| Attribute                   | Type   | Description                                                                         |
+| --------------------------- | ------ | ----------------------------------------------------------------------------------- |
+| `EarthDate`                 | String | Primary key indicating the Earth date of the pipeline execution.                    |
+| `sol`                       | Number | Corresponding Mars Sol (Martian day) for the Earth date.                            |
+| `Lambda1__FetchImages`      | Map    | Contains the status, output, and update timestamp for the Fetch Images Lambda.      |
+| `Lambda2__GenerateMemories` | Map    | Contains the status, output, and update timestamp for the Generate Memories Lambda. |
+| `Lambda3__EmbedToPinecone`  | Map    | Contains the status, output, and update timestamp for the Embed to Pinecone Lambda. |
+| `updated_at`                | String | Timestamp of the most recent update to the log entry.                               |
 
 ### **Lambda Logs Structure**
+
 Each Lambda log entry is stored as a map with the following keys:
 
-| Key         | Type     | Description                                                         |
-|-------------|----------|---------------------------------------------------------------------|
-| `output`    | List/Map | The output of the Lambda, such as URLs, metadata, or embeddings.    |
-| `status`    | String   | Execution status of the Lambda (`Success`, `Error`, etc.).         |
-| `updated_at`| String   | Timestamp of the last update for this Lambda entry.                |
+| Key          | Type     | Description                                                      |
+| ------------ | -------- | ---------------------------------------------------------------- |
+| `output`     | List/Map | The output of the Lambda, such as URLs, metadata, or embeddings. |
+| `status`     | String   | Execution status of the Lambda (`Success`, `Error`, etc.).       |
+| `updated_at` | String   | Timestamp of the last update for this Lambda entry.              |
 
 ### **Example Log Entry**
+
 ```json
 {
   "EarthDate": "2012-08-07",
@@ -188,6 +201,7 @@ Each Lambda log entry is stored as a map with the following keys:
 ```
 
 ### **Usage**
+
 1. **Log Updates:**
    Each Lambda function updates its corresponding entry in the DynamoDB log upon completion or failure.
 2. **Tracking Progress:**
@@ -217,8 +231,12 @@ memories/
 Tests ensure the functionality of individual Lambda functions and the pipeline as a whole.
 
 ```bash
+# Create virtual environment
+uv venv .venv -p "3.13.0" --seed
+source .venv/bin/activate
+
 # Install test dependencies
-pip install -r tests/requirements.txt --user
+pip install -r tests/requirements.txt
 
 # Run unit tests
 python -m pytest tests/unit -v
