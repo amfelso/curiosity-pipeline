@@ -46,9 +46,55 @@ The pipeline is designed to enable a chatbot with contextual memory, simulating 
 
 ## Setup and Deployment
 
+### Local Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/amfelso/curiosity-pipeline.git
+   cd curiosity-pipeline
+   ```
+
+2. **Set up your environment**
+   ```bash
+   make setup
+   ```
+   This will:
+   - Install Python dependencies from `layers/curiosity_pipeline/requirements.txt`
+   - Create a `.env` file from `.env.example`
+
+3. **Configure your API keys**
+   Edit the `.env` file with your actual API keys:
+   ```bash
+   PINECONE_API_KEY=your-pinecone-api-key-here
+   OPENAI_API_KEY=your-openai-api-key-here
+   NASA_API_KEY=your-nasa-api-key-here
+   ```
+
+### Available Make Commands
+
+- `make check-tools` - Verify required tools installed
+- `make setup` - Create venv, install dependencies, and create `.env`
+- `make install` - Install Python dependencies only
+- `make login` - Configure AWS credentials from `.env`
+- `make test` - Run all tests (automatically loads `.env`)
+- `make test-unit` - Run unit tests only
+- `make test-integration` - Run integration tests only (requires deployed stack)
+- `make lint` - Run flake8 linter and SAM template validation
+- `make build` - Build SAM application
+- `make deploy` - Lint, test, build, and deploy to AWS
+- `make clean` - Clean build artifacts, venv, and Python cache files
+
 ### Deploying the Pipeline
 
-Pipeline will automatically deploy via Github action when code updates are merged to release branch.
+**Automatic Deployment:**
+Pipeline will automatically deploy via Github Actions when code updates are merged to the release branch.
+
+**Manual Deployment:**
+```bash
+make deploy
+```
+
+This will lint, test, build, and deploy the application to AWS using SAM.
 
 ## **Simulated Dates Table and EventBridge**
 
@@ -231,19 +277,17 @@ memories/
 Tests ensure the functionality of individual Lambda functions and the pipeline as a whole.
 
 ```bash
-# Create virtual environment
-uv venv .venv -p "3.13.0" --seed
-source .venv/bin/activate
+# Run all tests
+make test
 
-# Install test dependencies
-pip install -r tests/requirements.txt
+# Run only unit tests
+make test-unit
 
-# Run unit tests
-python -m pytest tests/unit -v
-
-# Run integration tests (requires the stack to be deployed)
-AWS_SAM_STACK_NAME="mars-image-pipeline" python -m pytest tests/integration -v
+# Run only integration tests (requires the stack to be deployed)
+make test-integration
 ```
+
+**Note:** Integration tests require the SAM stack to be deployed to AWS first. Unit tests can run locally without any AWS resources.
 
 ---
 

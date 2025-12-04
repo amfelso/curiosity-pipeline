@@ -32,6 +32,7 @@ logger.setLevel(logging.INFO)  # Set logging level
 
 # Constants
 LAMBDA_NAME = "Lambda0: Daily Scheduler"
+SIMULATED_DATES_TABLE = "SimulatedDates"
 
 # Initialize clients
 dynamodb = boto3.resource("dynamodb")
@@ -39,11 +40,10 @@ stepfunctions = boto3.client("stepfunctions")
 
 
 def lambda_handler(event, context):
-    # Get environment variables
-    SIMULATED_DATES_TABLE = os.environ["SIMULATED_DATES_TABLE"]
-    STEP_FUNCTION_ARN = os.environ["STEP_FUNCTION_ARN"]
-    if not SIMULATED_DATES_TABLE or not STEP_FUNCTION_ARN:
-        raise ValueError("Environment variables not set.")
+    # Get STEP_FUNCTION_ARN from environment
+    STEP_FUNCTION_ARN = os.environ.get("STEP_FUNCTION_ARN")
+    if not STEP_FUNCTION_ARN:
+        raise ValueError("STEP_FUNCTION_ARN environment variable not set.")
 
     # Get simulation_id from the EventBridge input
     simulation_id = event.get("simulation_id", "test") # Default to test

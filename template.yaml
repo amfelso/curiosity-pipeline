@@ -14,6 +14,28 @@ Parameters:
     Description: API Key for NASA
 
 Resources:
+  # S3 Bucket for Mars Image Data Storage
+  MarsImageDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "curiosity-data-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+
   # State Machine for Mars Image Processing
   MarsImageProcessingStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -141,6 +163,7 @@ Resources:
         Variables:
           NUM_IMAGES: 5
           DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
+          S3_BUCKET_NAME: !Ref MarsImageDataBucket
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
@@ -168,6 +191,7 @@ Resources:
       Environment:
         Variables:
           DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
+          S3_BUCKET_NAME: !Ref MarsImageDataBucket
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
@@ -184,7 +208,7 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:PutObject
-              Resource: "arn:aws:s3:::curiosity-data-1205/*"
+              Resource: !Sub "${MarsImageDataBucket.Arn}/*"
         - Statement:
             - Sid: ddbPolicy
               Effect: Allow
@@ -207,6 +231,7 @@ Resources:
       Environment:
         Variables:
           DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
+          S3_BUCKET_NAME: !Ref MarsImageDataBucket
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
@@ -217,7 +242,7 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:PutObject
-              Resource: "arn:aws:s3:::curiosity-data-1205/*"
+              Resource: !Sub "${MarsImageDataBucket.Arn}/*"
         - Statement:
             - Sid: ddbPolicy
               Effect: Allow
@@ -232,10 +257,6 @@ Outputs:
     Description: "Mars Image Processing State Machine ARN"
     Value: !Ref MarsImageProcessingStateMachine
 
-  DailySchedulerLambdaArn:
-    Description: "ARN for the DailySchedulerLambda"
-    Value: !GetAtt DailySchedulerLambda.Arn
-
-  PipelineTransactionLogTableName:
-    Description: "DynamoDB table for transaction logging"
-    Value: !Ref PipelineTransactionLogTable
+  MarsImageDataBucketName:
+    Description: "S3 Bucket for Mars Image Data Storage"
+    Value: !Ref MarsImageDataBucket
