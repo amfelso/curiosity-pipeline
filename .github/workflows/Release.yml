@@ -36,6 +36,15 @@ jobs:
           NASA_API_KEY=${{ secrets.NASA_API_KEY }}
           EOF
 
+      # Fetch Step Function ARN if stack exists (for integration tests in make deploy)
+      - run: |
+          STEP_FUNCTION_ARN=$(aws cloudformation describe-stacks --stack-name mars-image-pipeline \
+            --query 'Stacks[0].Outputs[?OutputKey==`MarsImageProcessingStateMachineArn`].OutputValue' \
+            --output text 2>/dev/null || echo "")
+          if [ -n "$STEP_FUNCTION_ARN" ]; then
+            echo "STEP_FUNCTION_ARN=$STEP_FUNCTION_ARN" >> .env
+          fi
+
       # Install dependencies and deploy (lint, test, build included)
       - run: make install
       - run: make deploy
