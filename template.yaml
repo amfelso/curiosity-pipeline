@@ -14,6 +14,28 @@ Parameters:
     Description: API Key for NASA
 
 Resources:
+  # S3 Bucket for Mars Image Data Storage
+  MarsImageDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "curiosity-data-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+
   # State Machine for Mars Image Processing
   MarsImageProcessingStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -63,7 +85,7 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: daily_scheduler.app.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.13
       Timeout: 60
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -79,9 +101,9 @@ Resources:
               Action:
                 - dynamodb:GetItem
                 - dynamodb:UpdateItem
-              Resource: 
-              - !GetAtt SimulatedDatesTable.Arn
-              - !GetAtt PipelineTransactionLogTable.Arn
+              Resource:
+                - !GetAtt SimulatedDatesTable.Arn
+                - !GetAtt PipelineTransactionLogTable.Arn
         - Statement:
             - Sid: StepFunctionsStartExecutionPolicy
               Effect: Allow
@@ -108,7 +130,7 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt MVPEventBridgeRule.Arn
-      
+
   # Layer for Dependencies
   MarsImageProcessingLayer:
     Type: AWS::Serverless::LayerVersion
@@ -117,10 +139,10 @@ Resources:
       Description: Dependencies for Mars Image Processing functions
       ContentUri: layers/curiosity_pipeline/
       CompatibleRuntimes:
-        - python3.9
+        - python3.13
       RetentionPolicy: Retain
     Metadata:
-      BuildMethod: python3.9
+      BuildMethod: python3.13
       BuildProperties:
         Pipfile: false
         UsePipenv: false
@@ -132,7 +154,7 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: fetch_images_with_metadata.app.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.13
       Description: Fetches the latest images from the NASA Mars Rover API.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -141,6 +163,7 @@ Resources:
         Variables:
           NUM_IMAGES: 5
           DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
+          S3_BUCKET_NAME: !Ref MarsImageDataBucket
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
@@ -152,15 +175,15 @@ Resources:
                 - dynamodb:PutItem
                 - dynamodb:UpdateItem
                 - dynamodb:GetItem
-              Resource: 
-              - !GetAtt PipelineTransactionLogTable.Arn
+              Resource:
+                - !GetAtt PipelineTransactionLogTable.Arn
 
   ProcessMarsImageMetadataFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/
       Handler: generate_memories_and_diary.app.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.13
       Description: Processes metadata for Mars images and stores it in S3.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -168,6 +191,7 @@ Resources:
       Environment:
         Variables:
           DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
+          S3_BUCKET_NAME: !Ref MarsImageDataBucket
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
@@ -177,14 +201,14 @@ Resources:
               Effect: Allow
               Action:
                 - rekognition:DetectLabels
-              Resource: '*'
+              Resource: "*"
         - Statement:
             - Sid: s3Policy
               Effect: Allow
               Action:
                 - s3:GetObject
                 - s3:PutObject
-              Resource: 'arn:aws:s3:::curiosity-data-1205/*'
+              Resource: !Sub "${MarsImageDataBucket.Arn}/*"
         - Statement:
             - Sid: ddbPolicy
               Effect: Allow
@@ -199,7 +223,7 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: embed_memories_to_pinecone.app.lambda_handler
-      Runtime: python3.9
+      Runtime: python3.13
       Description: Generates vector embeddings for Mars images and stores them in Pinecone.
       Layers:
         - !Ref MarsImageProcessingLayer
@@ -207,6 +231,7 @@ Resources:
       Environment:
         Variables:
           DDB_TABLE_NAME: !Ref PipelineTransactionLogTable
+          S3_BUCKET_NAME: !Ref MarsImageDataBucket
           PINECONE_API_KEY: !Ref PineconeApiKey
           OPENAI_API_KEY: !Ref OpenAiApiKey
           NASA_API_KEY: !Ref NasaApiKey
@@ -217,7 +242,7 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:PutObject
-              Resource: 'arn:aws:s3:::curiosity-data-1205/*'
+              Resource: !Sub "${MarsImageDataBucket.Arn}/*"
         - Statement:
             - Sid: ddbPolicy
               Effect: Allow
@@ -232,10 +257,6 @@ Outputs:
     Description: "Mars Image Processing State Machine ARN"
     Value: !Ref MarsImageProcessingStateMachine
 
-  DailySchedulerLambdaArn:
-    Description: "ARN for the DailySchedulerLambda"
-    Value: !GetAtt DailySchedulerLambda.Arn
-
-  PipelineTransactionLogTableName:
-    Description: "DynamoDB table for transaction logging"
-    Value: !Ref PipelineTransactionLogTable
+  MarsImageDataBucketName:
+    Description: "S3 Bucket for Mars Image Data Storage"
+    Value: !Ref MarsImageDataBucket

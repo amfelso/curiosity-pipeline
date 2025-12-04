@@ -10,12 +10,13 @@ jobs:
       - name: Clean up _temp directory
         run: rm -rf ${{ runner.temp }}
 
-    # Add other steps here
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
       - name: Set up AWS SAM CLI
         uses: aws-actions/setup-sam@v1
@@ -27,19 +28,23 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      # sam build 
-      - run: sam build --use-container
-
-      # sam deploy
+      # Create .env for deployment
       - run: |
-          sam deploy \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --stack-name mars-image-pipeline \
-            --s3-bucket sam-assets-12032024 \
-            --capabilities CAPABILITY_IAM \
-            --region us-east-1 \
-            --parameter-overrides \
-            ParameterKey=NasaApiKey,ParameterValue=${{ secrets.NASA_API_KEY }} \
-            ParameterKey=PineconeApiKey,ParameterValue=${{ secrets.PINECONE_API_KEY }} \
-            ParameterKey=OpenAiApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }} \
+          cat > .env << EOF
+          PINECONE_API_KEY=${{ secrets.PINECONE_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          NASA_API_KEY=${{ secrets.NASA_API_KEY }}
+          EOF
+
+      # Fetch Step Function ARN if stack exists (for integration tests in make deploy)
+      - run: |
+          STEP_FUNCTION_ARN=$(aws cloudformation describe-stacks --stack-name mars-image-pipeline \
+            --query 'Stacks[0].Outputs[?OutputKey==`MarsImageProcessingStateMachineArn`].OutputValue' \
+            --output text 2>/dev/null || echo "")
+          if [ -n "$STEP_FUNCTION_ARN" ]; then
+            echo "STEP_FUNCTION_ARN=$STEP_FUNCTION_ARN" >> .env
+          fi
+
+      # Install dependencies and deploy (lint, test, build included)
+      - run: make install
+      - run: make deploy
