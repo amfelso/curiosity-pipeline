@@ -30,7 +30,7 @@ pyflakes==3.4.0
 Pygments==2.20.0
 pytest==9.0.1
 python-dateutil==2.9.0.post0
-python-dotenv==1.2.1
+python-dotenv==1.2.2
 requests==2.33.0
 s3transfer==0.16.0
 six==1.17.0
